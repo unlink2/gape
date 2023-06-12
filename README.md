@@ -1,5 +1,8 @@
 # gape
 
+Gape is a general purpose tool that allows the user to execute commands when certain events occur on the system.
+It offers POSIX-like watch features as well as filesystem watches, TPC and UDP sockets and many more.
+
 ## Table of content
 
 - [Installation](#Installation)

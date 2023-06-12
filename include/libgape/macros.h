@@ -3,4 +3,6 @@
 
 #define UNUSED(...) (void)(__VA_ARGS__)
 
+typedef enum { false, true } bool;
+
 #endif

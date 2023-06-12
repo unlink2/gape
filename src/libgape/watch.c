@@ -16,7 +16,7 @@ bool gape_watch_cond_false(struct GapeWatch *self) {
 }
 
 bool gape_watch_act_sprint(struct GapeWatch *self) {
-  sprintf(self->watch_var, "ACT");
+  sprintf(self->act_cfg, "ACT");
   return true;
 }
 
@@ -27,52 +27,30 @@ struct GapeWatch gape_watch_init(void) {
 
   return self;
 }
-struct GapeWatch gape_watch_true_init(GapeWatchAct act, void *watch_cfg,
-                                      void *watch_var) {
-  struct GapeWatch self = gape_watch_init();
-  self.cond = gape_watch_cond_true;
-  self.action = act;
-  self.watch_var = watch_var;
-  self.watch_cfg = watch_cfg;
-  return self;
-}
-
-struct GapeWatch gape_watch_true_false(GapeWatchAct act, void *watch_cfg,
-                                       void *watch_var) {
-  struct GapeWatch self = gape_watch_init();
-  self.cond = gape_watch_cond_false;
-  self.action = act;
-  self.watch_var = watch_var;
-  self.watch_cfg = watch_cfg;
-  return self;
-}
-
-struct GapeWatch gape_watch_time_init(uint64_t seconds) {
-  struct GapeWatch self = gape_watch_init();
-
-  return self;
-}
 
 void gape_watch(struct GapeWatch *self) {
-  gape_dbg_assert(self->action);
+  gape_dbg_assert(self->act);
   gape_dbg_assert(self->cond);
   while (self->n_runs == GAPE_NRUN_FOREVER || self->n_runs-- > 0) {
     while (!self->cond(self)) {
       usleep(GAPE_SPIN_MS);
     }
 
-    if (!self->action(self)) {
+    if (!self->act(self)) {
       break;
     }
   }
 }
 
-void gape_watch_free(struct GapeWatch *self) {
-  if (self->watch_cfg) {
-    free(self->watch_cfg);
-  }
-
-  if (self->watch_var) {
-    free(self->watch_var);
-  }
+void gape_watch_set_cond(struct GapeWatch *self, GapeWatchCond cond,
+                         void *cfg) {
+  self->cond = cond;
+  self->cond_cfg = cfg;
 }
+
+void gape_watch_set_act(struct GapeWatch *self, GapeWatchAct act, void *cfg) {
+  self->act = act;
+  self->act_cfg = cfg;
+}
+
+void gape_watch_free(struct GapeWatch *self) {}

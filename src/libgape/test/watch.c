@@ -6,7 +6,10 @@
 
 void test_watch_true(void **state) {
   char dst[128];
-  struct GapeWatch w1 = gape_watch_true_init(gape_watch_act_sprint, NULL, dst);
+  struct GapeWatch w1 = gape_watch_init();
+  gape_watch_set_cond(&w1, gape_watch_cond_true, NULL);
+  gape_watch_set_act(&w1, gape_watch_act_sprint, dst);
+
   w1.n_runs = 1;
   gape_watch(&w1);
 

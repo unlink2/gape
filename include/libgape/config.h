@@ -1,8 +1,8 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-struct GapeConfig {};
+struct gape_config {};
 
-struct GapeConfig gape_config_init(void);
+struct gape_config gape_config_init(void);
 
 #endif

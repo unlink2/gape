@@ -22,7 +22,7 @@
 
 // Possible error types.
 // Some may or may not require special error info
-enum GapeError {
+enum gape_error {
   GAPE_OK = 0,
   GAPE_ERR_PIPE,
   GAPE_ERR_FORK,
@@ -32,7 +32,7 @@ enum GapeError {
   GAPE_ERRNO
 };
 
-const char *gape_err_to_str(enum GapeError self);
+const char *gape_err_to_str(enum gape_error self);
 
 #define gape_err_msg(...) sprintf(gape_err_msg_ptr(), __VA_ARGS__);
 
@@ -46,11 +46,11 @@ const char *gape_err_to_str(enum GapeError self);
 
 // sets err to a value
 // to indicate a failure in a call
-void gape_err_set(enum GapeError err);
+void gape_err_set(enum gape_error err);
 
 // return error code and resets value
 // to OK
-enum GapeError gape_err(void);
+enum gape_error gape_err(void);
 void gape_err_rest(void);
 
 // the error message is in practice a thread local

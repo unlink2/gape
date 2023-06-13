@@ -5,19 +5,19 @@
 
 _Thread_local char ERR_MESSAGE[GAPE_ERR_MSG_LEN];
 _Thread_local char ERR_DETAILS[GAPE_ERR_DETAIL_LEN];
-_Thread_local enum GapeError GAPE_ERR;
+_Thread_local enum gape_error GAPE_ERR;
 
-const char *gape_err_to_str(enum GapeError self) {
+const char *gape_err_to_str(enum gape_error self) {
   switch (self) {
   case GAPE_OK:
     return "OK";
   }
 }
 
-void gape_err_set(enum GapeError err) { GAPE_ERR = err; }
+void gape_err_set(enum gape_error err) { GAPE_ERR = err; }
 
-enum GapeError gape_err(void) {
-  enum GapeError latest = GAPE_ERR;
+enum gape_error gape_err(void) {
+  enum gape_error latest = GAPE_ERR;
   return latest;
 }
 

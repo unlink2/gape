@@ -21,7 +21,7 @@ struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds) {
   return self;
 }
 
-bool gape_cond_time_sec(struct GapeWatch *self, void *_cfg) {
+bool gape_cond_time_sec(struct gape_watch *self, void *_cfg) {
   struct GapeCondTimeSec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
@@ -34,25 +34,25 @@ bool gape_cond_time_sec(struct GapeWatch *self, void *_cfg) {
   return false;
 }
 
-bool gape_cond_true(struct GapeWatch *self, void *cfg) {
+bool gape_cond_true(struct gape_watch *self, void *cfg) {
   GAPE_UNUSED(self);
   GAPE_UNUSED(cfg);
   return true;
 }
 
-bool gape_cond_false(struct GapeWatch *self, void *cfg) {
+bool gape_cond_false(struct gape_watch *self, void *cfg) {
   GAPE_UNUSED(self);
   GAPE_UNUSED(cfg);
   return false;
 }
 
-int gape_act_sprint(struct GapeWatch *self, void *cfg) {
+int gape_act_sprint(struct gape_watch *self, void *cfg) {
   GAPE_UNUSED(self);
   sprintf(cfg, "ACT");
   return 0;
 }
 
-int gape_act_exec(struct GapeWatch *self, void *_cfg) {
+int gape_act_exec(struct gape_watch *self, void *_cfg) {
   struct GapeActExec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
@@ -105,18 +105,18 @@ int gape_act_exec(struct GapeWatch *self, void *_cfg) {
   return cfg->status;
 }
 
-struct GapeWatch gape_watch_init(void) {
-  struct GapeWatch self;
+struct gape_watch gape_watch_init(void) {
+  struct gape_watch self;
   memset(&self, 0, sizeof(self));
   self.n_runs = GAPE_NRUN_FOREVER;
 
   return self;
 }
 
-void gape_watch_exit(struct GapeWatch *self) { self->n_runs = 0; }
+void gape_watch_exit(struct gape_watch *self) { self->n_runs = 0; }
 
-int gape_watch(struct GapeWatch *self, GapeWatchCond cond, void *cond_cfg,
-               GapeWatchAct act, void *act_cfg) {
+int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
+               gape_watch_act act, void *act_cfg) {
   gape_dbg_assert(act);
   gape_dbg_assert(cond);
 
@@ -139,4 +139,4 @@ int gape_watch(struct GapeWatch *self, GapeWatchCond cond, void *cond_cfg,
   return status;
 }
 
-void gape_watch_free(struct GapeWatch *self) {}
+void gape_watch_free(struct gape_watch *self) {}

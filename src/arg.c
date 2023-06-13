@@ -2,7 +2,7 @@
 #include "libgape/config.h"
 #include "libgape/log.h"
 
-struct GapeConfig gape_args_to_config(int argc, char **argv) {
+struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_lit *verb = NULL;
   struct arg_lit *help = NULL;
   struct arg_lit *version = NULL;
@@ -57,7 +57,7 @@ struct GapeConfig gape_args_to_config(int argc, char **argv) {
     goto exit;
   }
 
-  struct GapeConfig cfg = gape_config_init();
+  struct gape_config cfg = gape_config_init();
 
   // map args to cfg data here
   arg_freetable(argtable, sizeof(argtable) / sizeof(argtable[0]));

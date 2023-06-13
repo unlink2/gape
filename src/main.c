@@ -5,6 +5,6 @@
 #include "arg.h"
 
 int main(int argc, char **argv) {
-  struct GapeConfig cfg = gape_args_to_config(argc, argv);
+  struct gape_config cfg = gape_args_to_config(argc, argv);
   return 0;
 }

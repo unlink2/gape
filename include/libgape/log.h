@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum GapeLogLevel {
+enum gape_loglevel {
   GAPE_LOG_LEVEL_OFF,
   GAPE_LOG_LEVEL_ERROR,
   GAPE_LOG_LEVEL_WARN,
@@ -13,9 +13,9 @@ enum GapeLogLevel {
   GAPE_LOG_LEVEL_DBG,
 };
 
-void gape_log_init(enum GapeLogLevel level);
+void gape_log_init(enum gape_loglevel level);
 
-extern enum GapeLogLevel GAPE_LOG_LEVEL;
+extern enum gape_loglevel GAPE_LOG_LEVEL;
 extern FILE *GAPE_LOG_TARGET;
 
 #define gape_dbg_assert(a) assert((a))

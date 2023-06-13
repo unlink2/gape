@@ -8,6 +8,6 @@
 #include "libgape/log.h"
 #include "libgape/macros.h"
 
-struct GapeConfig gape_args_to_config(int argc, char **argv);
+struct gape_config gape_args_to_config(int argc, char **argv);
 
 #endif

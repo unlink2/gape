@@ -5,8 +5,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-struct GapeBuffer gape_buffer_init(void) {
-  struct GapeBuffer self;
+struct gape_buffer gape_buffer_init(void) {
+  struct gape_buffer self;
   memset(&self, 0, sizeof(self));
 
   self.data = malloc(GAPE_BUFFER_INITIAL_LEN);
@@ -15,7 +15,7 @@ struct GapeBuffer gape_buffer_init(void) {
   return self;
 }
 
-void gape_buffer_resize(struct GapeBuffer *self, size_t by) {
+void gape_buffer_resize(struct gape_buffer *self, size_t by) {
   size_t new_max_len = self->max_len + by;
   uint8_t *new_data = realloc(self->data, self->max_len);
 
@@ -27,7 +27,7 @@ void gape_buffer_resize(struct GapeBuffer *self, size_t by) {
   }
 }
 
-uint8_t *gape_buffer_next(struct GapeBuffer *self, size_t len) {
+uint8_t *gape_buffer_next(struct gape_buffer *self, size_t len) {
   if (self->index + len >= self->max_len) {
     gape_buffer_resize(self, len * 2);
     if (gape_err()) {
@@ -38,6 +38,6 @@ uint8_t *gape_buffer_next(struct GapeBuffer *self, size_t len) {
   return self->data + self->index;
 }
 
-void gape_buffer_adv(struct GapeBuffer *self, size_t n) { self->index += n; }
+void gape_buffer_adv(struct gape_buffer *self, size_t n) { self->index += n; }
 
-void gape_buffer_free(struct GapeBuffer *self) { free(self->data); }
+void gape_buffer_free(struct gape_buffer *self) { free(self->data); }

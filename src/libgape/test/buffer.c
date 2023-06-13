@@ -5,7 +5,7 @@
 #include <cmocka.h>
 
 void test_buffer(void **state) {
-  struct GapeBuffer b1 = gape_buffer_init();
+  struct gape_buffer b1 = gape_buffer_init();
 
   assert_non_null(gape_buffer_next(&b1, GAPE_BUFFER_INITIAL_LEN - 1));
   assert_false(gape_err());

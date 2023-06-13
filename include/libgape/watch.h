@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <time.h>
 #include "libgape/macros.h"
 
 #define GAPE_NRUN_FOREVER -1
@@ -23,24 +24,38 @@ typedef bool (*GapeWatchAct)(struct GapeWatch *self);
  * Conditions
  */
 
+struct GapeCondTimeSec {
+  time_t seconds;
+  time_t next_time;
+};
+
+struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds);
+
 // a test condition that always returns true
-bool gape_watch_cond_true(struct GapeWatch *self);
+bool gape_cond_true(struct GapeWatch *self);
 // a test condition that always returns false
-bool gape_watch_cond_false(struct GapeWatch *self);
+bool gape_cond_false(struct GapeWatch *self);
 // regular timer-based watch
-bool gape_watch_cond_time(struct GapeWatch *self);
+bool gape_cond_time_sec(struct GapeWatch *self);
 
 /**
- * Acttions
+ * Actions
  */
+
+struct GapeActExec {
+  // program to run
+  char *const path;
+  // null terminated argv
+  char *const *args;
+};
 
 // an action that simply writes to a string buffer and exits after
 // a single run
 // watch_var should point to a char*
-bool gape_watch_act_sprint(struct GapeWatch *self);
+bool gape_act_sprint(struct GapeWatch *self);
 
 // call execve
-bool gape_watch_act_execve(struct GapeWatch *self);
+bool gape_act_exec(struct GapeWatch *self);
 
 // Contains shared config for all action types
 struct GapeWatch {

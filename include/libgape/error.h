@@ -21,9 +21,7 @@
 
 // Possible error types.
 // Some may or may not require special error info
-enum GapeError {
-  GAPE_OK = 0,
-};
+enum GapeError { GAPE_OK = 0, GAPE_ERR_PIPE, GAPE_ERR_FORK, GAPE_ERR_REALLOC };
 
 const char *gape_err_to_str(enum GapeError self);
 

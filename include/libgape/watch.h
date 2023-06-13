@@ -26,12 +26,12 @@ typedef int (*gape_watch_act)(struct gape_watch *self, void *cfg);
  * Conditions
  */
 
-struct GapeCondTimeSec {
+struct gape_cond_time_sec {
   time_t seconds;
   time_t next_time;
 };
 
-struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds);
+struct gape_cond_time_sec gape_cond_time_sec_init(time_t seconds);
 
 // a test condition that always returns true
 bool gape_cond_true(struct gape_watch *self, void *cfg);
@@ -44,7 +44,7 @@ bool gape_cond_time_sec(struct gape_watch *self, void *cfg);
  * Actions
  */
 
-struct GapeActExec {
+struct gape_act_exec {
   // program to run
   char *const path;
   // null terminated argv

@@ -11,8 +11,8 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds) {
-  struct GapeCondTimeSec self;
+struct gape_cond_time_sec gape_cond_time_sec_init(time_t seconds) {
+  struct gape_cond_time_sec self;
   memset(&self, 0, sizeof(self));
   self.seconds = seconds;
 
@@ -22,7 +22,7 @@ struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds) {
 }
 
 bool gape_cond_time_sec(struct gape_watch *self, void *_cfg) {
-  struct GapeCondTimeSec *cfg = _cfg;
+  struct gape_cond_time_sec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
   time_t current = time(NULL);
@@ -53,7 +53,7 @@ int gape_act_sprint(struct gape_watch *self, void *cfg) {
 }
 
 int gape_act_exec(struct gape_watch *self, void *_cfg) {
-  struct GapeActExec *cfg = _cfg;
+  struct gape_act_exec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
   gape_buffer_free(&cfg->prev);

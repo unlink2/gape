@@ -88,7 +88,8 @@ bool gape_act_exec(struct GapeWatch *self) {
       n_read = read(link[0], gape_buffer_next(&cfg->current, GAPE_BUFF_READ),
                     GAPE_BUFF_READ);
       if (n_read == -1) {
-        // TODO Errno is set
+        gape_errno();
+        return true;
       }
 
       gape_buffer_adv(&cfg->current, n_read);

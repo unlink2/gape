@@ -3,6 +3,7 @@
 
 #include "libgape/macros.h"
 #include <stddef.h>
+#include <errno.h>
 
 /**
  * Error is a error type struct that provides
@@ -21,11 +22,25 @@
 
 // Possible error types.
 // Some may or may not require special error info
-enum GapeError { GAPE_OK = 0, GAPE_ERR_PIPE, GAPE_ERR_FORK, GAPE_ERR_REALLOC };
+enum GapeError {
+  GAPE_OK = 0,
+  GAPE_ERR_PIPE,
+  GAPE_ERR_FORK,
+  GAPE_ERR_REALLOC,
+
+  // errno is stored in err_detail
+  GAPE_ERRNO
+};
 
 const char *gape_err_to_str(enum GapeError self);
 
 #define gape_err_msg(...) sprintf(gape_err_msg_ptr(), __VA_ARGS__);
+
+#define gape_errno()                                                           \
+  {                                                                            \
+    gape_err_set(GAPE_ERRNO);                                                  \
+    gape_err_detail(&errno, sizeof(errno));                                    \
+  }
 
 #define gape_err_detail(data, len) memcpy(gape_err_details_ptr(), data, len);
 

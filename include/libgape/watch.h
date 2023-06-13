@@ -72,6 +72,9 @@ struct GapeWatch {
   // number of runs before force exiting
   // if set to -1 run forever
   int32_t n_runs;
+
+  // exit on status != 0
+  bool exit_on_err;
 };
 
 struct GapeWatch gape_watch_init(void);

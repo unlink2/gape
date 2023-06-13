@@ -128,7 +128,10 @@ int gape_watch(struct GapeWatch *self, GapeWatchCond cond, void *cond_cfg,
     }
 
     status = act(self, act_cfg);
-    if (gape_err()) {
+
+    gape_dbg("Act exited with status %d\n", status);
+
+    if (gape_err() || (self->exit_on_err && status != 0)) {
       break;
     }
   }

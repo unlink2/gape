@@ -20,7 +20,7 @@ extern FILE *GAPE_LOG_TARGET;
 
 #define gape_dbg_assert(a) assert((a))
 #define gape_log_fprintf(f, level, ...)                                        \
-  if ((level) <= LOG_LEVEL) {                                                  \
+  if ((level) <= GAPE_LOG_LEVEL) {                                             \
     fprintf((f), "[%d] ", level);                                              \
     fprintf((f), __VA_ARGS__);                                                 \
   }

@@ -1,4 +1,5 @@
 #include "libgape/watch.h"
+#include "libgape/buffer.h"
 #include "libgape/error.h"
 #include "libgape/log.h"
 #include <stdio.h>
@@ -7,6 +8,7 @@
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
 struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds) {
   struct GapeCondTimeSec self;
@@ -47,8 +49,13 @@ bool gape_act_sprint(struct GapeWatch *self) {
 }
 
 bool gape_act_exec(struct GapeWatch *self) {
+
   struct GapeActExec *cfg = self->act_cfg;
   gape_dbg_assert(cfg);
+
+  gape_buffer_free(&cfg->prev);
+  cfg->prev = cfg->current;
+  cfg->current = gape_buffer_init();
 
   int link[2];
   if (pipe(link) == -1) {
@@ -65,12 +72,30 @@ bool gape_act_exec(struct GapeWatch *self) {
   if (pid == 0) {
     // child proc
     dup2(link[1], STDOUT_FILENO);
+
+    // set ip pipes
     close(link[0]);
     close(link[1]);
 
     execv(cfg->path, cfg->args);
   } else {
     // parent proc
+    close(link[1]);
+
+    int64_t n_read = 0;
+    do {
+      // read from fd until end or error
+      n_read = read(link[0], gape_buffer_next(&cfg->current, GAPE_BUFF_READ),
+                    GAPE_BUFF_READ);
+      if (n_read == -1) {
+        // TODO Errno is set
+      }
+
+      gape_buffer_adv(&cfg->current, n_read);
+    } while (n_read);
+
+    // obtain exit code for process
+    waitpid(pid, &cfg->status, 0);
   }
 
   return true;

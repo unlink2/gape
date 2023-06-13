@@ -9,21 +9,25 @@ void test_buffer(void **state) {
 
   assert_non_null(gape_buffer_next(&b1, GAPE_BUFFER_INITIAL_LEN - 1));
   assert_false(gape_err());
+  gape_buffer_adv(&b1, GAPE_BUFFER_INITIAL_LEN - 1);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN, b1.max_len);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN - 1, b1.index);
 
   assert_non_null(gape_buffer_next(&b1, 127));
   assert_false(gape_err());
+  gape_buffer_adv(&b1, 127);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN + 127 * 2, b1.max_len);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN - 1 + 127, b1.index);
 
   assert_non_null(gape_buffer_next(&b1, 127));
   assert_false(gape_err());
+  gape_buffer_adv(&b1, 127);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN + 127 * 2, b1.max_len);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN - 1 + 127 * 2, b1.index);
 
   assert_non_null(gape_buffer_next(&b1, 127));
   assert_false(gape_err());
+  gape_buffer_adv(&b1, 127);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN + 127 * 4, b1.max_len);
   assert_int_equal(GAPE_BUFFER_INITIAL_LEN - 1 + 127 * 3, b1.index);
 

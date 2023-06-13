@@ -35,8 +35,9 @@ uint8_t *gape_buffer_next(struct GapeBuffer *self, size_t len) {
     }
   }
 
-  self->index += len;
   return self->data + self->index;
 }
+
+void gape_buffer_adv(struct GapeBuffer *self, size_t n) { self->index += n; }
 
 void gape_buffer_free(struct GapeBuffer *self) { free(self->data); }

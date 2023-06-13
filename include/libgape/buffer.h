@@ -23,6 +23,9 @@ struct GapeBuffer gape_buffer_init(void);
 // and return the apropriate pointer
 uint8_t *gape_buffer_next(struct GapeBuffer *self, size_t len);
 
+// advance index by n bytes
+void gape_buffer_adv(struct GapeBuffer *self, size_t n);
+
 void gape_buffer_free(struct GapeBuffer *self);
 
 #endif

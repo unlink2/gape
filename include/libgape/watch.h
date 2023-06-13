@@ -4,10 +4,12 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <time.h>
+#include "libgape/buffer.h"
 #include "libgape/macros.h"
 
 #define GAPE_NRUN_FOREVER -1
 #define GAPE_SPIN_MS 100
+#define GAPE_BUFF_READ 256
 
 struct GapeWatch;
 
@@ -47,6 +49,10 @@ struct GapeActExec {
   char *const path;
   // null terminated argv
   char *const *args;
+
+  int status;
+  struct GapeBuffer current;
+  struct GapeBuffer prev;
 };
 
 // an action that simply writes to a string buffer and exits after

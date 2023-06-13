@@ -2,6 +2,7 @@
 #include "libgape/buffer.h"
 #include "libgape/error.h"
 #include "libgape/log.h"
+#include "libgape/macros.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,8 +21,8 @@ struct GapeCondTimeSec gape_cond_time_sec_init(time_t seconds) {
   return self;
 }
 
-bool gape_cond_time_sec(struct GapeWatch *self) {
-  struct GapeCondTimeSec *cfg = self->cond_cfg;
+bool gape_cond_time_sec(struct GapeWatch *self, void *_cfg) {
+  struct GapeCondTimeSec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
   time_t current = time(NULL);
@@ -33,24 +34,26 @@ bool gape_cond_time_sec(struct GapeWatch *self) {
   return false;
 }
 
-bool gape_cond_true(struct GapeWatch *self) {
+bool gape_cond_true(struct GapeWatch *self, void *cfg) {
   GAPE_UNUSED(self);
+  GAPE_UNUSED(cfg);
   return true;
 }
 
-bool gape_cond_false(struct GapeWatch *self) {
+bool gape_cond_false(struct GapeWatch *self, void *cfg) {
   GAPE_UNUSED(self);
+  GAPE_UNUSED(cfg);
   return false;
 }
 
-bool gape_act_sprint(struct GapeWatch *self) {
-  sprintf(self->act_cfg, "ACT");
-  return true;
+int gape_act_sprint(struct GapeWatch *self, void *cfg) {
+  GAPE_UNUSED(self);
+  sprintf(cfg, "ACT");
+  return 0;
 }
 
-bool gape_act_exec(struct GapeWatch *self) {
-
-  struct GapeActExec *cfg = self->act_cfg;
+int gape_act_exec(struct GapeWatch *self, void *_cfg) {
+  struct GapeActExec *cfg = _cfg;
   gape_dbg_assert(cfg);
 
   gape_buffer_free(&cfg->prev);
@@ -89,7 +92,7 @@ bool gape_act_exec(struct GapeWatch *self) {
                     GAPE_BUFF_READ);
       if (n_read == -1) {
         gape_errno();
-        return true;
+        return EXIT_FAILURE;
       }
 
       gape_buffer_adv(&cfg->current, n_read);
@@ -99,7 +102,7 @@ bool gape_act_exec(struct GapeWatch *self) {
     waitpid(pid, &cfg->status, 0);
   }
 
-  return true;
+  return cfg->status;
 }
 
 struct GapeWatch gape_watch_init(void) {
@@ -110,29 +113,27 @@ struct GapeWatch gape_watch_init(void) {
   return self;
 }
 
-void gape_watch(struct GapeWatch *self) {
-  gape_dbg_assert(self->act);
-  gape_dbg_assert(self->cond);
+void gape_watch_exit(struct GapeWatch *self) { self->n_runs = 0; }
+
+int gape_watch(struct GapeWatch *self, GapeWatchCond cond, void *cond_cfg,
+               GapeWatchAct act, void *act_cfg) {
+  gape_dbg_assert(act);
+  gape_dbg_assert(cond);
+
+  int status = 0;
+
   while (self->n_runs == GAPE_NRUN_FOREVER || self->n_runs-- > 0) {
-    while (!self->cond(self)) {
+    while (!cond(self, cond_cfg)) {
       usleep(GAPE_SPIN_MS);
     }
 
-    if (!self->act(self) || gape_err()) {
+    status = act(self, act_cfg);
+    if (gape_err()) {
       break;
     }
   }
-}
 
-void gape_watch_set_cond(struct GapeWatch *self, GapeWatchCond cond,
-                         void *cfg) {
-  self->cond = cond;
-  self->cond_cfg = cfg;
-}
-
-void gape_watch_set_act(struct GapeWatch *self, GapeWatchAct act, void *cfg) {
-  self->act = act;
-  self->act_cfg = cfg;
+  return status;
 }
 
 void gape_watch_free(struct GapeWatch *self) {}

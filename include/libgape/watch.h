@@ -25,6 +25,9 @@ typedef bool (*gape_watch_cond)(struct gape_watch *self,
 typedef int (*gape_watch_act)(struct gape_watch *self,
                               struct gape_watch_cfg *cfg);
 
+typedef int (*gape_watch_out)(struct gape_watch *self,
+                              struct gape_watch_cfg *cfg);
+
 /**
  * Conditions
  */
@@ -66,6 +69,11 @@ int gape_act_sprint(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 int gape_act_exec(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 
 /**
+ * Out functions
+ */
+int gape_out_none(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
+
+/**
  * Watch config
  */
 
@@ -85,13 +93,15 @@ struct gape_watch {
 struct gape_watch_cfg {
   void *act_cfg;
   void *cond_cfg;
+  void *out_cfg;
 
   // output buffers
   struct gape_buffer out_cur;
   struct gape_buffer out_prev;
 };
 
-struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg);
+struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg,
+                                          void *out_cfg);
 void gape_watch_cfg_swap_out(struct gape_watch_cfg *self);
 void gape_watch_cfg_free(struct gape_watch_cfg *self);
 
@@ -102,7 +112,8 @@ void gape_watch_exit(struct gape_watch *self);
 
 // execute a watch with a condition and action
 int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
-               gape_watch_act act, void *act_cfg);
+               gape_watch_act act, void *act_cfg, gape_watch_out out,
+               void *out_cfg);
 
 void gape_watch_free(struct gape_watch *self);
 

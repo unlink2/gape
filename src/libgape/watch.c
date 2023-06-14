@@ -107,6 +107,13 @@ int gape_act_exec(struct gape_watch *self, struct gape_watch_cfg *watch_cfg) {
   return cfg->status;
 }
 
+int gape_out_none(struct gape_watch *self, struct gape_watch_cfg *watch_cfg) {
+  GAPE_UNUSED(self);
+  GAPE_UNUSED(watch_cfg);
+
+  return 0;
+}
+
 struct gape_watch gape_watch_init(void) {
   struct gape_watch self;
   memset(&self, 0, sizeof(self));
@@ -128,20 +135,27 @@ void gape_watch_cfg_swap_out(struct gape_watch_cfg *self) {
 
 void gape_watch_exit(struct gape_watch *self) { self->n_runs = 0; }
 
-struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg) {
+struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg,
+                                          void *out_cfg) {
   struct gape_watch_cfg self;
   memset(&self, 0, sizeof(self));
 
   self.cond_cfg = cond_cfg;
   self.act_cfg = act_cfg;
+  self.out_cfg = out_cfg;
+
+  self.out_cur = gape_buffer_init();
+  self.out_prev = gape_buffer_init();
 
   return self;
 }
 
 int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
-               gape_watch_act act, void *act_cfg) {
+               gape_watch_act act, void *act_cfg, gape_watch_out out,
+               void *out_cfg) {
 
-  struct gape_watch_cfg watch_cfg = gape_watch_cfg_init(cond_cfg, act_cfg);
+  struct gape_watch_cfg watch_cfg =
+      gape_watch_cfg_init(cond_cfg, act_cfg, out_cfg);
 
   gape_dbg_assert(act);
   gape_dbg_assert(cond);
@@ -161,7 +175,7 @@ int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
       break;
     }
 
-    // TODO: Allow custom output callback
+    out(self, &watch_cfg);
   }
 
   gape_watch_cfg_free(&watch_cfg);

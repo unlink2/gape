@@ -150,12 +150,9 @@ struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg,
   return self;
 }
 
-int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
-               gape_watch_act act, void *act_cfg, gape_watch_out out,
-               void *out_cfg) {
-
-  struct gape_watch_cfg watch_cfg =
-      gape_watch_cfg_init(cond_cfg, act_cfg, out_cfg);
+int gape_watch_adv(struct gape_watch *self, struct gape_watch_cfg *watch_cfg,
+                   gape_watch_cond cond, gape_watch_act act,
+                   gape_watch_out out) {
 
   gape_dbg_assert(act);
   gape_dbg_assert(cond);
@@ -163,11 +160,11 @@ int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
   int status = 0;
 
   while (self->n_runs == GAPE_NRUN_FOREVER || self->n_runs-- > 0) {
-    while (!cond(self, &watch_cfg)) {
+    while (!cond(self, watch_cfg)) {
       usleep(GAPE_SPIN_MS);
     }
 
-    status = act(self, &watch_cfg);
+    status = act(self, watch_cfg);
 
     gape_dbg("Act exited with status %d\n", status);
 
@@ -175,8 +172,20 @@ int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
       break;
     }
 
-    out(self, &watch_cfg);
+    out(self, watch_cfg);
   }
+
+  return status;
+}
+
+int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
+               gape_watch_act act, void *act_cfg, gape_watch_out out,
+               void *out_cfg) {
+
+  struct gape_watch_cfg watch_cfg =
+      gape_watch_cfg_init(cond_cfg, act_cfg, out_cfg);
+
+  int status = gape_watch_adv(self, &watch_cfg, cond, act, out);
 
   gape_watch_cfg_free(&watch_cfg);
 

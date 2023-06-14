@@ -26,6 +26,8 @@ uint8_t *gape_buffer_next(struct gape_buffer *self, size_t len);
 // advance index by n bytes
 void gape_buffer_adv(struct gape_buffer *self, size_t n);
 
+void gape_buffer_clear(struct gape_buffer *self);
+
 void gape_buffer_free(struct gape_buffer *self);
 
 #endif

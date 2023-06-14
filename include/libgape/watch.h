@@ -12,15 +12,18 @@
 #define GAPE_BUFF_READ 256
 
 struct gape_watch;
+struct gape_watch_cfg;
 
 /**
  * Callback function defs
  */
 
 // runs a watch check and returns true whenever the watch has triggered
-typedef bool (*gape_watch_cond)(struct gape_watch *self, void *cfg);
+typedef bool (*gape_watch_cond)(struct gape_watch *self,
+                                struct gape_watch_cfg *watch_cfg);
 // runs a watch action and retrns a status code (similar to program exit codes)
-typedef int (*gape_watch_act)(struct gape_watch *self, void *cfg);
+typedef int (*gape_watch_act)(struct gape_watch *self,
+                              struct gape_watch_cfg *cfg);
 
 /**
  * Conditions
@@ -34,11 +37,12 @@ struct gape_cond_time_sec {
 struct gape_cond_time_sec gape_cond_time_sec_init(time_t seconds);
 
 // a test condition that always returns true
-bool gape_cond_true(struct gape_watch *self, void *cfg);
+bool gape_cond_true(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 // a test condition that always returns false
-bool gape_cond_false(struct gape_watch *self, void *cfg);
+bool gape_cond_false(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 // regular timer-based watch
-bool gape_cond_time_sec(struct gape_watch *self, void *cfg);
+bool gape_cond_time_sec(struct gape_watch *self,
+                        struct gape_watch_cfg *watch_cfg);
 
 /**
  * Actions
@@ -51,17 +55,15 @@ struct gape_act_exec {
   char *const *args;
 
   int status;
-  struct gape_buffer current;
-  struct gape_buffer prev;
 };
 
 // an action that simply writes to a string buffer and exits after
 // a single run
 // watch_var should point to a char*
-int gape_act_sprint(struct gape_watch *self, void *cfg);
+int gape_act_sprint(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 
 // call execve
-int gape_act_exec(struct gape_watch *self, void *cfg);
+int gape_act_exec(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 
 /**
  * Watch config
@@ -76,6 +78,22 @@ struct gape_watch {
   // exit on status != 0
   bool exit_on_err;
 };
+
+/**
+ * This struct simply holds shared references for all callbacks
+ */
+struct gape_watch_cfg {
+  void *act_cfg;
+  void *cond_cfg;
+
+  // output buffers
+  struct gape_buffer out_cur;
+  struct gape_buffer out_prev;
+};
+
+struct gape_watch_cfg gape_watch_cfg_init(void *cond_cfg, void *act_cfg);
+void gape_watch_cfg_swap_out(struct gape_watch_cfg *self);
+void gape_watch_cfg_free(struct gape_watch_cfg *self);
 
 struct gape_watch gape_watch_init(void);
 

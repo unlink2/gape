@@ -134,6 +134,8 @@ int gape_watch(struct gape_watch *self, gape_watch_cond cond, void *cond_cfg,
     if (gape_err() || (self->exit_on_err && status != 0)) {
       break;
     }
+
+    // TODO: Allow custom output callback
   }
 
   return status;

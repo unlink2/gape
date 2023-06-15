@@ -73,6 +73,10 @@ int gape_act_exec(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
  */
 int gape_out_none(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
 
+// simply print out
+// This assumes that out_cur is a NULL terminated string
+int gape_out_print(struct gape_watch *self, struct gape_watch_cfg *watch_cfg);
+
 /**
  * Watch config
  */

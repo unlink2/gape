@@ -42,4 +42,17 @@ void gape_buffer_adv(struct gape_buffer *self, size_t n) { self->index += n; }
 
 void gape_buffer_clear(struct gape_buffer *self) { self->index = 0; }
 
+const uint8_t *gape_buffer_start(struct gape_buffer *self) {
+  return self->data;
+}
+
+size_t gape_buffer_len(struct gape_buffer *self) { return self->max_len; }
+
+void gape_buffer_null_term(struct gape_buffer *self) {
+  uint8_t *next = gape_buffer_next(self, 1);
+  if (*next != '\0') {
+    *next = '\0';
+  }
+}
+
 void gape_buffer_free(struct gape_buffer *self) { free(self->data); }

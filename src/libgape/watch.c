@@ -114,6 +114,14 @@ int gape_out_none(struct gape_watch *self, struct gape_watch_cfg *watch_cfg) {
   return 0;
 }
 
+int gape_out_print(struct gape_watch *self, struct gape_watch_cfg *watch_cfg) {
+  gape_buffer_null_term(&watch_cfg->out_cur);
+
+  // TODO: maybe allow writing to any file here
+  return (int)write(fileno(stdout), gape_buffer_start(&watch_cfg->out_cur),
+                    gape_buffer_len(&watch_cfg->out_cur));
+}
+
 struct gape_watch gape_watch_init(void) {
   struct gape_watch self;
   memset(&self, 0, sizeof(self));

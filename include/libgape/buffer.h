@@ -28,6 +28,15 @@ void gape_buffer_adv(struct gape_buffer *self, size_t n);
 
 void gape_buffer_clear(struct gape_buffer *self);
 
+// returns the start address of the current buffer ptr
+const uint8_t *gape_buffer_start(struct gape_buffer *self);
+size_t gape_buffer_len(struct gape_buffer *self);
+
+// this call NULL terminates the buffer by appending \0
+// This will *not* advance the buffer. it simply ensures
+// termination
+void gape_buffer_null_term(struct gape_buffer *self);
+
 void gape_buffer_free(struct gape_buffer *self);
 
 #endif

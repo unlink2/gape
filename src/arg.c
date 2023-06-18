@@ -100,5 +100,6 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   return cfg;
 exit:
+  // TODO: do not exit here, just set an error
   exit(exitcode); // NOLINT
 }

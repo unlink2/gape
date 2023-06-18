@@ -6,5 +6,13 @@
 
 int main(int argc, char **argv) {
   struct gape_config cfg = gape_args_to_config(argc, argv);
+
+  const char **e = cfg.prg_args;
+  while (*e) {
+    printf("%s\n", *e);
+    e++;
+  }
+
+  gape_config_free(&cfg);
   return 0;
 }

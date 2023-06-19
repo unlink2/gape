@@ -9,11 +9,13 @@ enum gape_watch_stat {
 
 struct gape_config {
   const char *prg_path;
-  const char **prg_args;
+  char **prg_args;
 
   gape_watch_cond cond;
   gape_watch_act act;
   gape_watch_out out;
+
+  bool dry;
 
   enum gape_watch_stat strategy;
 };

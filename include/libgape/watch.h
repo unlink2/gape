@@ -55,6 +55,7 @@ bool gape_cond_time_sec(struct gape_watch *self);
  */
 
 struct gape_act_cfg {
+  bool dry;
   union {
     struct { // program to run
       const char *path;

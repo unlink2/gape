@@ -75,6 +75,17 @@ int gape_act_exec(struct gape_watch *self) {
   struct gape_act_cfg *cfg = &self->act_cfg;
   gape_dbg_assert(cfg);
 
+  if (cfg->dry) {
+    gape_info("Path: %s\nargs:\n\n", cfg->path);
+    char *const *arg = cfg->args;
+    while (*arg) {
+      gape_info("%s\n", *arg);
+      arg++;
+    }
+    gape_watch_exit(self);
+    return 0;
+  }
+
   gape_watch_swap_out(self);
 
   int link[2];
@@ -171,6 +182,8 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
       gape_cond_time_sec, gape_cond_time_sec_init(1), gape_act_exec,
       gape_act_cfg_exec(cfg->prg_path, cfg->prg_args), gape_out_print,
       gape_out_cfg_init());
+
+  self.act_cfg.dry = cfg->dry;
 
   return self;
 }

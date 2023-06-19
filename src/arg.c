@@ -13,6 +13,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_lit *prg_exec_no_sh = NULL;
   struct arg_str *prg_exec = NULL;
 
+  struct arg_lit *dry = NULL;
+
   // arg end stores errors
   struct arg_end *end = NULL;
 
@@ -26,6 +28,7 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
           "e", "exec",
           "Run command directly using exec instead of using '" GAPE_SHELL_CMD
           " " GAPE_SHELL_OPT "'"),
+      dry = arg_lit0(NULL, "dry", "Do a test run"),
       end = arg_end(20),
   };
 
@@ -70,6 +73,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   struct gape_config cfg = gape_config_init();
 
+  cfg.dry = dry->count > 0;
+
   // start set exec command
   int prg_offset = 0;
   // if exec is not set simply start prg_args with 2 'sh -c'
@@ -86,7 +91,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   }
 
   for (size_t i = prg_offset; i < prg_exec->count + prg_offset; i++) {
-    cfg.prg_args[i] = prg_exec->sval[i - prg_offset];
+    // FIXME: this cast is pretty bad
+    cfg.prg_args[i] = (char *)prg_exec->sval[i - prg_offset];
   }
   cfg.prg_args[prg_exec->count + prg_offset] = NULL;
 

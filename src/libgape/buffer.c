@@ -9,7 +9,7 @@ struct gape_buffer gape_buffer_init(void) {
   struct gape_buffer self;
   memset(&self, 0, sizeof(self));
 
-  self.data = malloc(GAPE_BUFFER_INITIAL_LEN);
+  self.data = calloc(sizeof(uint8_t), GAPE_BUFFER_INITIAL_LEN);
   self.max_len = GAPE_BUFFER_INITIAL_LEN;
 
   return self;

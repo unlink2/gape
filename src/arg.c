@@ -2,7 +2,7 @@
 #include "libgape/config.h"
 #include "libgape/log.h"
 
-#define GAPE_SHELL_CMD "sh"
+#define GAPE_SHELL_CMD "/bin/sh"
 #define GAPE_SHELL_OPT "-c"
 
 struct gape_config gape_args_to_config(int argc, char **argv) {

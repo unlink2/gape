@@ -3,6 +3,7 @@
 #include "libgape/error.h"
 #include "libgape/log.h"
 #include "libgape/macros.h"
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -76,10 +77,10 @@ int gape_act_exec(struct gape_watch *self) {
   gape_dbg_assert(cfg);
 
   if (cfg->dry) {
-    gape_info("Path: %s\nargs:\n\n", cfg->path);
+    gape_dbg("Path: %s\nargs:\n\n", cfg->path);
     char *const *arg = cfg->args;
     while (*arg) {
-      gape_info("%s\n", *arg);
+      gape_dbg("%s\n", *arg);
       arg++;
     }
     gape_watch_exit(self);
@@ -104,11 +105,13 @@ int gape_act_exec(struct gape_watch *self) {
     // child proc
     dup2(link[1], STDOUT_FILENO);
 
-    // set ip pipes
+    // set up pipes
     close(link[0]);
     close(link[1]);
 
     execv(cfg->path, cfg->args);
+    // this should never be called!
+    gape_panic("Exec should have been called for %s\n", cfg->path); // NOLINT
   } else {
     // parent proc
     close(link[1]);
@@ -116,8 +119,11 @@ int gape_act_exec(struct gape_watch *self) {
     int64_t n_read = 0;
     do {
       // read from fd until end or error
-      n_read = read(link[0], gape_buffer_next(&self->out_cur, GAPE_BUFF_READ),
-                    GAPE_BUFF_READ);
+      uint8_t *next = gape_buffer_next(&self->out_cur, GAPE_BUFF_READ);
+      gape_dbg_assert(next);
+
+      uint8_t buffer[GAPE_BUFF_READ];
+      n_read = read(link[0], buffer, GAPE_BUFF_READ);
       if (n_read == -1) {
         gape_errno();
         return EXIT_FAILURE;

@@ -7,7 +7,9 @@
 #include "libgape/buffer.h"
 #include "libgape/macros.h"
 
-#define GAPE_NRUN_FOREVER -1
+struct gape_config;
+
+#define GAPE_NRUN_FOREVER (-1)
 #define GAPE_SPIN_MS 100
 #define GAPE_BUFF_READ 256
 
@@ -28,12 +30,18 @@ typedef int (*gape_watch_out)(struct gape_watch *self);
  * Conditions
  */
 
-struct gape_cond_time_sec {
-  time_t seconds;
-  time_t next_time;
+struct gape_cond_cfg {
+  union {
+    struct {
+      time_t seconds;
+      time_t next_time;
+    };
+    void *custom;
+  };
 };
 
-struct gape_cond_time_sec gape_cond_time_sec_init(time_t seconds);
+struct gape_cond_cfg gape_cond_cfg_init(void);
+struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds);
 
 // a test condition that always returns true
 bool gape_cond_true(struct gape_watch *self);
@@ -46,14 +54,21 @@ bool gape_cond_time_sec(struct gape_watch *self);
  * Actions
  */
 
-struct gape_act_exec {
-  // program to run
-  char *const path;
-  // null terminated argv
-  char *const *args;
-
-  int status;
+struct gape_act_cfg {
+  union {
+    struct { // program to run
+      const char *path;
+      // null terminated argv
+      char *const *args;
+      int status;
+    };
+    void *custom;
+  };
 };
+
+struct gape_act_cfg gape_act_cfg_init(void);
+
+struct gape_act_cfg gape_act_cfg_exec(const char *path, char *const *args);
 
 // an action that simply writes to a string buffer and exits after
 // a single run
@@ -66,6 +81,14 @@ int gape_act_exec(struct gape_watch *self);
 /**
  * Out functions
  */
+struct gape_out_cfg {
+  union {
+    void *custom;
+  };
+};
+
+struct gape_out_cfg gape_out_cfg_init(void);
+
 int gape_out_none(struct gape_watch *self);
 
 // simply print out
@@ -86,9 +109,9 @@ struct gape_watch {
   bool exit_on_err;
 
   // state cfg
-  void *act_cfg;
-  void *cond_cfg;
-  void *out_cfg;
+  struct gape_act_cfg act_cfg;
+  struct gape_cond_cfg cond_cfg;
+  struct gape_out_cfg out_cfg;
 
   gape_watch_act act;
   gape_watch_cond cond;
@@ -101,9 +124,14 @@ struct gape_watch {
 
 void gape_watch_swap_out(struct gape_watch *self);
 
-struct gape_watch gape_watch_init(gape_watch_cond cond, void *cond_cfg,
-                                  gape_watch_act act, void *act_cfg,
-                                  gape_watch_out out, void *out_cfg);
+struct gape_watch
+gape_watch_init(gape_watch_cond cond, struct gape_cond_cfg cond_cfg,
+                gape_watch_act act, struct gape_act_cfg act_cfg,
+                gape_watch_out out, struct gape_out_cfg out_cfg
+
+);
+
+struct gape_watch gape_watch_from_cfg(struct gape_config *cfg);
 
 // call to break out of watch loop early
 void gape_watch_exit(struct gape_watch *self);

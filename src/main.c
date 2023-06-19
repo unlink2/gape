@@ -3,6 +3,7 @@
 #include "libgape/config.h"
 #include "libgape/log.h"
 #include "arg.h"
+#include "libgape/watch.h"
 
 int main(int argc, char **argv) {
   struct gape_config cfg = gape_args_to_config(argc, argv);

@@ -111,10 +111,12 @@ int gape_act_exec(struct gape_watch *self) {
 
     execv(cfg->path, cfg->args);
     // this should never be called!
-    gape_panic("Exec should have been called for %s\n", cfg->path); // NOLINT
+    gape_panic("'%s': No such file or directory\n", cfg->path);
   } else {
     // parent proc
     close(link[1]);
+    // wait for child to exit and obtain exit code
+    waitpid(pid, &cfg->status, 0);
 
     int64_t n_read = 0;
     do {
@@ -124,6 +126,7 @@ int gape_act_exec(struct gape_watch *self) {
 
       uint8_t buffer[GAPE_BUFF_READ];
       n_read = read(link[0], buffer, GAPE_BUFF_READ);
+      printf("read %d bytes '%c'\n", n_read, buffer[0]);
       if (n_read == -1) {
         gape_errno();
         return EXIT_FAILURE;
@@ -131,9 +134,6 @@ int gape_act_exec(struct gape_watch *self) {
 
       gape_buffer_adv(&self->out_cur, n_read);
     } while (n_read);
-
-    // obtain exit code for process
-    waitpid(pid, &cfg->status, 0);
   }
 
   return cfg->status;

@@ -36,7 +36,7 @@ extern FILE *GAPE_LOG_TARGET;
 #define gape_panic(...)                                                        \
   {                                                                            \
     fprintf(stderr, __VA_ARGS__);                                              \
-    exit(-1);                                                                  \
+    exit(-1); /* NOLINT */                                                     \
   }
 #define gape_todo(...)                                                         \
   { gape_panic(__VA_ARGS__); }

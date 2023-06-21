@@ -126,9 +126,7 @@ int gape_act_exec(struct gape_watch *self) {
       uint8_t *next = gape_buffer_next(&self->out_cur, GAPE_BUFF_READ);
       gape_dbg_assert(next);
 
-      printf("%p\n", next);
       n_read = read(link[0], next, GAPE_BUFF_READ);
-      printf("read %d bytes\n", n_read);
       if (n_read == -1) {
         gape_errno();
         return EXIT_FAILURE;

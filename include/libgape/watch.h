@@ -11,7 +11,7 @@ struct gape_config;
 
 #define GAPE_NRUN_FOREVER (-1)
 #define GAPE_SPIN_MS 100
-#define GAPE_BUFF_READ 256
+#define GAPE_BUFF_READ 4096
 
 struct gape_watch;
 

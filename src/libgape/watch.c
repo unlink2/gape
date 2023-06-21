@@ -153,15 +153,12 @@ int gape_out_none(struct gape_watch *self) {
 
 int gape_out_print(struct gape_watch *self) {
   size_t len = gape_buffer_len(&self->out_cur);
-  int written = 0;
   if (len) {
     // TODO: maybe allow writing to any file here
-    written +=
-        (int)write(fileno(stdout), gape_buffer_start(&self->out_cur), len);
-    written += (int)write(fileno(stdout), "\n", 1);
+    return (int)write(fileno(stdout), gape_buffer_start(&self->out_cur), len);
   }
 
-  return written;
+  return 0;
 }
 
 struct gape_watch

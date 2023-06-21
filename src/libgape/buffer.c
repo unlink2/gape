@@ -53,7 +53,7 @@ const uint8_t *gape_buffer_start(struct gape_buffer *self) {
   return self->data;
 }
 
-size_t gape_buffer_len(struct gape_buffer *self) { return self->max_len; }
+size_t gape_buffer_len(struct gape_buffer *self) { return self->index; }
 
 void gape_buffer_null_term(struct gape_buffer *self) {
   uint8_t *next = gape_buffer_next(self, 1);

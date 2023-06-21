@@ -1,5 +1,6 @@
 #include "libgape/buffer.h"
 #include "libgape/error.h"
+#include "libgape/log.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,6 +21,11 @@ void gape_buffer_resize(struct gape_buffer *self, size_t by) {
   uint8_t *new_data = realloc(self->data, self->max_len);
 
   if (new_data) {
+    gape_dbg(
+        "Resized buffer %p:%ld by %ld bytes (to %ld). Old address: %p. New "
+        "address: %p\n",
+        (void *)self, self->max_len, by, new_max_len, (void *)self->data,
+        (void *)new_data);
     self->max_len = new_max_len;
     self->data = new_data;
   } else {
@@ -43,6 +49,7 @@ void gape_buffer_adv(struct gape_buffer *self, size_t n) { self->index += n; }
 void gape_buffer_clear(struct gape_buffer *self) { self->index = 0; }
 
 const uint8_t *gape_buffer_start(struct gape_buffer *self) {
+  gape_dbg_assert(self->data);
   return self->data;
 }
 
@@ -50,9 +57,7 @@ size_t gape_buffer_len(struct gape_buffer *self) { return self->max_len; }
 
 void gape_buffer_null_term(struct gape_buffer *self) {
   uint8_t *next = gape_buffer_next(self, 1);
-  if (*next != '\0') {
-    *next = '\0';
-  }
+  *next = '\0';
 }
 
 void gape_buffer_free(struct gape_buffer *self) { free(self->data); }

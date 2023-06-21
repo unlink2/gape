@@ -76,6 +76,8 @@ int gape_act_exec(struct gape_watch *self) {
   struct gape_act_cfg *cfg = &self->act_cfg;
   gape_dbg_assert(cfg);
 
+  gape_buffer_clear(&self->out_cur);
+
   if (cfg->dry) {
     gape_dbg("Path: %s\nargs:\n\n", cfg->path);
     char *const *arg = cfg->args;
@@ -126,7 +128,7 @@ int gape_act_exec(struct gape_watch *self) {
 
       uint8_t buffer[GAPE_BUFF_READ];
       n_read = read(link[0], buffer, GAPE_BUFF_READ);
-      printf("read %d bytes '%c'\n", n_read, buffer[0]);
+      printf("read %d bytes\n", n_read);
       if (n_read == -1) {
         gape_errno();
         return EXIT_FAILURE;
@@ -152,11 +154,16 @@ int gape_out_none(struct gape_watch *self) {
 }
 
 int gape_out_print(struct gape_watch *self) {
-  gape_buffer_null_term(&self->out_cur);
+  size_t len = gape_buffer_len(&self->out_cur);
+  int written = 0;
+  if (len) {
+    // TODO: maybe allow writing to any file here
+    written +=
+        (int)write(fileno(stdout), gape_buffer_start(&self->out_cur), len);
+    written += (int)write(fileno(stdout), "\n", 1);
+  }
 
-  // TODO: maybe allow writing to any file here
-  return (int)write(fileno(stdout), gape_buffer_start(&self->out_cur),
-                    gape_buffer_len(&self->out_cur));
+  return written;
 }
 
 struct gape_watch

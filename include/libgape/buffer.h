@@ -37,6 +37,13 @@ size_t gape_buffer_len(struct gape_buffer *self);
 // termination
 void gape_buffer_null_term(struct gape_buffer *self);
 
+// moves the data owned by the buffer out of the buffer
+// and guarantees to clean up the remaining data the buffer might use
+// using the buffer after this call is ub.
+// The caller is responsible for calling free() on the returned
+// data
+uint8_t *gape_buffer_move(struct gape_buffer *self);
+
 void gape_buffer_free(struct gape_buffer *self);
 
 #endif

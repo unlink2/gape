@@ -61,4 +61,6 @@ void gape_buffer_null_term(struct gape_buffer *self) {
   *next = '\0';
 }
 
+uint8_t *gape_buffer_move(struct gape_buffer *self) { return self->data; }
+
 void gape_buffer_free(struct gape_buffer *self) { free(self->data); }

@@ -11,9 +11,6 @@ struct gape_config {
   const char *prg_path;
   char **prg_args;
 
-  const char *exec;
-  struct gape_buffer exec_args;
-
   gape_watch_cond cond;
   gape_watch_act act;
   gape_watch_out out;
@@ -24,9 +21,6 @@ struct gape_config {
 };
 
 struct gape_config gape_config_init(void);
-
-void gape_config_exec(struct gape_config *self, const char *prg,
-                      const char **args, size_t args_len);
 
 void gape_config_free(struct gape_config *self);
 

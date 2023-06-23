@@ -1,9 +1,13 @@
 #include "arg.h"
+#include "libgape/buffer.h"
 #include "libgape/config.h"
 #include "libgape/log.h"
+#include <stdint.h>
+#include <string.h>
 
 #define GAPE_SHELL_CMD "/bin/sh"
 #define GAPE_SHELL_OPT "-c"
+#define GAPE_ENV_CMD "/usr/bin/env"
 
 struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_lit *verb = NULL;
@@ -76,26 +80,46 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   cfg.dry = dry->count > 0;
 
   // start set exec command
-  int prg_offset = 0;
   // if exec is not set simply start prg_args with 2 'sh -c'
   if (prg_exec_no_sh->count == 0) {
-    prg_offset = 2;
-  }
 
-  cfg.prg_args =
-      malloc(sizeof(const char *) * (prg_exec->count + 1 + prg_offset));
+    // 3 args + 1 for NULL
+    cfg.prg_args = malloc(sizeof(const char *) * (3 + 1));
 
-  if (prg_offset > 0) {
     cfg.prg_args[0] = GAPE_SHELL_CMD;
     cfg.prg_args[1] = GAPE_SHELL_OPT;
-  }
 
-  for (size_t i = prg_offset; i < prg_exec->count + prg_offset; i++) {
-    // FIXME: this cast is pretty bad
-    cfg.prg_args[i] = (char *)prg_exec->sval[i - prg_offset];
-  }
-  cfg.prg_args[prg_exec->count + prg_offset] = NULL;
+    struct gape_buffer sh_cmd = gape_buffer_init();
+    for (size_t i = 0; i < prg_exec->count; i++) {
+      size_t len = strlen(prg_exec->sval[i]);
+      uint8_t *next = gape_buffer_next(&sh_cmd, len);
 
+      memcpy(next, prg_exec->sval[i], len);
+
+      gape_buffer_adv(&sh_cmd, len);
+
+      // space between all the commands
+      *gape_buffer_next(&sh_cmd, 1) = ' ';
+      gape_buffer_adv(&sh_cmd, 1);
+    }
+    gape_buffer_null_term(&sh_cmd);
+    cfg.prg_args[2] = (char *)gape_buffer_move(&sh_cmd);
+
+    // make sure this string can be freed later
+    cfg._free_me_sh_c = cfg.prg_args[2];
+
+    cfg.prg_args[3] = NULL;
+  } else {
+    // 1 for env + args + 1 for NULL
+    cfg.prg_args = malloc(sizeof(const char *) * (1 + prg_exec->count + 1));
+
+    cfg.prg_args[0] = GAPE_ENV_CMD;
+    for (size_t i = 1; i < prg_exec->count + 1; i++) {
+      // FIXME: this cast is pretty bad
+      cfg.prg_args[i] = (char *)prg_exec->sval[i - 1];
+    }
+    cfg.prg_args[prg_exec->count + 1] = NULL;
+  }
   // the prg path is the 0th arg
   cfg.prg_path = cfg.prg_args[0];
 

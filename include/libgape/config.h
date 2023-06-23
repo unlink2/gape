@@ -11,6 +11,10 @@ struct gape_config {
   const char *prg_path;
   char **prg_args;
 
+  // internal use only. Pass ptr to sh -c argument that may have been malloced
+  // here to have it freed in config_free
+  char *_free_me_sh_c;
+
   gape_watch_cond cond;
   gape_watch_act act;
   gape_watch_out out;

@@ -10,7 +10,11 @@ struct gape_config gape_config_init(void) {
 }
 
 void gape_config_free(struct gape_config *self) {
-  if (self->prg_args != NULL) {
+  if (self->prg_args) {
     free(self->prg_args);
+  }
+
+  if (self->_free_me_sh_c) {
+    free(self->_free_me_sh_c);
   }
 }

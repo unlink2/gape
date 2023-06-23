@@ -7,10 +7,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/types.h>
 #include <time.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/wait.h>
+#include <sys/stat.h>
 #include "libgape/config.h"
 
 struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
@@ -39,6 +41,39 @@ bool gape_cond_time_sec(struct gape_watch *self) {
   }
 
   return false;
+}
+
+// calculate fstat sum for condition checking
+int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
+                       const uint16_t depth) {
+  struct stat s;
+
+  if (stat(path, &s) == -1) {
+    gape_errno();
+    return 0;
+  }
+
+  int64_t sum = 0;
+  if (s.st_mode & S_IFDIR) {
+    // call again
+
+  } else {
+    // calc stat
+    // this is a bad implementation, but
+    // it might just work for most cases
+  }
+
+  return sum;
+}
+
+bool gape_cond_fstat_poll(struct gape_watch *self) {
+  int64_t fstat_sum = gape_fstat_sum(self, self->cond_cfg.observe_path, 0);
+
+  int64_t fstat_sum_last = self->cond_cfg.fstat_sum_last;
+
+  self->cond_cfg.fstat_sum_last = fstat_sum;
+
+  return fstat_sum_last != fstat_sum;
 }
 
 bool gape_cond_true(struct gape_watch *self) {

@@ -37,7 +37,15 @@ struct gape_cond_cfg {
       time_t next_time;
     };
     struct {
+      // contains a simple sum of all
+      // previously stated files and directories
+      // if it changes we know the file system has changed
+      // and we can re-run
+      int64_t fstat_sum_last;
+
       const char *observe_path;
+      // set max depth to -1 to ignore
+      int16_t max_depth;
       bool recursive;
       bool all; // include or ignore dotfiles
       // TODO implement ignored patterns
@@ -57,7 +65,7 @@ bool gape_cond_false(struct gape_watch *self);
 bool gape_cond_time_sec(struct gape_watch *self);
 
 // poll a directory and check for changes
-bool gape_cond_fstatk_poll(struct gape_watch *self);
+bool gape_cond_fstat_poll(struct gape_watch *self);
 
 /**
  * Actions

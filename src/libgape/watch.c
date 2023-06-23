@@ -17,7 +17,7 @@ struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
   struct gape_cond_cfg self;
   memset(&self, 0, sizeof(self));
   self.seconds = seconds;
-  self.next_time = time(NULL) + self.seconds;
+  self.next_time = time(NULL);
 
   return self;
 }
@@ -186,8 +186,10 @@ gape_watch_init(gape_watch_cond cond, struct gape_cond_cfg cond_cfg,
 
 // TODO: differentiate between differnet types of condition
 struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
+
+  gape_dbg("Running program every %d seconds.", cfg->interval);
   struct gape_watch self = gape_watch_init(
-      gape_cond_time_sec, gape_cond_time_sec_init(1), gape_act_exec,
+      gape_cond_time_sec, gape_cond_time_sec_init(cfg->interval), gape_act_exec,
       gape_act_cfg_exec(cfg->prg_path, cfg->prg_args), gape_out_print,
       gape_out_cfg_init());
 

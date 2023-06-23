@@ -19,6 +19,8 @@ struct gape_config {
   gape_watch_act act;
   gape_watch_out out;
 
+  int interval;
+
   bool dry;
 
   enum gape_watch_stat strategy;

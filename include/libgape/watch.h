@@ -36,6 +36,12 @@ struct gape_cond_cfg {
       time_t seconds;
       time_t next_time;
     };
+    struct {
+      const char *observe_path;
+      bool recursive;
+      bool all; // include or ignore dotfiles
+      // TODO implement ignored patterns
+    };
     void *custom;
   };
 };
@@ -49,6 +55,9 @@ bool gape_cond_true(struct gape_watch *self);
 bool gape_cond_false(struct gape_watch *self);
 // regular timer-based watch
 bool gape_cond_time_sec(struct gape_watch *self);
+
+// poll a directory and check for changes
+bool gape_cond_fstatk_poll(struct gape_watch *self);
 
 /**
  * Actions
@@ -95,6 +104,10 @@ int gape_out_none(struct gape_watch *self);
 // simply print out
 // This assumes that out_cur is a NULL terminated string
 int gape_out_print(struct gape_watch *self);
+
+// print diff between this and previous output
+// by running the output through the diff command
+int gape_out_print_diff(struct gape_watch *self);
 
 /**
  * Watch config

@@ -19,6 +19,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   struct arg_lit *dry = NULL;
 
+  struct arg_int *interval = NULL;
+
   // arg end stores errors
   struct arg_end *end = NULL;
 
@@ -33,6 +35,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
           "Run command directly using exec instead of using '" GAPE_SHELL_CMD
           " " GAPE_SHELL_OPT "'"),
       dry = arg_lit0(NULL, "dry", "Do a test run"),
+      interval = arg_int0("n", "interval", "seconds",
+                          "Specify the update interval in seconds."),
       end = arg_end(20),
   };
 
@@ -78,6 +82,12 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   struct gape_config cfg = gape_config_init();
 
   cfg.dry = dry->count > 0;
+
+  if (interval->count > 0) {
+    cfg.interval = *interval->ival;
+  } else {
+    cfg.interval = 2;
+  }
 
   // start set exec command
   // if exec is not set simply start prg_args with 2 'sh -c'

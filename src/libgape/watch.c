@@ -14,6 +14,8 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include "libgape/config.h"
+#include <libgen.h>
+#include <dirent.h>
 
 struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
   struct gape_cond_cfg self;
@@ -43,9 +45,20 @@ bool gape_cond_time_sec(struct gape_watch *self) {
   return false;
 }
 
+bool gape_should_fstat(struct gape_watch *self, char *path) {
+  char *base = basename(path);
+  return (self->cond_cfg.all || base[0] != '.') && strcmp(".", base) != 0 &&
+         strcmp("..", base) != 0;
+}
+
 // calculate fstat sum for condition checking
 int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
-                       const uint16_t depth) {
+                       const int16_t depth) {
+
+  if (!gape_should_fstat(self, (char *)path)) {
+    return 0;
+  }
+
   struct stat s;
 
   if (stat(path, &s) == -1) {
@@ -54,9 +67,24 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
   }
 
   int64_t sum = 0;
-  if (s.st_mode & S_IFDIR) {
-    // call again
+  if (s.st_mode & S_IFDIR && (self->cond_cfg.max_depth == GAPE_STAT_DEPTH_INF ||
+                              depth < self->cond_cfg.max_depth)) {
+    // call again for every path in directory
 
+    DIR *dir = NULL;
+    struct dirent *entry = NULL;
+    dir = opendir(path);
+    if (dir == NULL) {
+      gape_errno();
+      gape_error("Unable to open directory '%s'\n", path);
+      closedir(dir);
+      return 0;
+    }
+
+    while ((entry = readdir(dir)) != NULL) { // NOLINT
+      sum += gape_fstat_sum(self, entry->d_name, (int16_t)(depth + 1));
+    }
+    closedir(dir);
   } else {
     // calc stat
     // this is a bad implementation, but

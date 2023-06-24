@@ -77,13 +77,13 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
     if (dir == NULL) {
       gape_errno();
       gape_error("Unable to open directory '%s'\n", path);
-      closedir(dir);
       return 0;
     }
 
     while ((entry = readdir(dir)) != NULL) { // NOLINT
       sum += gape_fstat_sum(self, entry->d_name, (int16_t)(depth + 1));
     }
+
     closedir(dir);
   } else {
     // calc stat

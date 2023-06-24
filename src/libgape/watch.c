@@ -89,6 +89,9 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
     // calc stat
     // this is a bad implementation, but
     // it might just work for most cases
+    for (size_t i = 0; i < sizeof(s); i++) {
+      sum += ((uint8_t *)(&s))[i];
+    }
   }
 
   return sum;

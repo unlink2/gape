@@ -266,7 +266,6 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
   struct gape_cond_cfg cond_cfg = gape_cond_cfg_init();
 
   if (cfg->observe_path) {
-    gape_dbg("Observing %s\n", cfg->observe_path);
     cond = gape_cond_fstat_poll;
 
     int16_t max_depth = cfg->max_depth;
@@ -276,6 +275,9 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
     }
 
     cond_cfg = gape_cond_fstat_init(cfg->observe_path, max_depth, cfg->all);
+
+    gape_dbg("Observing %s with a depth of %d (dotfiles: %d)\n",
+             cond_cfg.observe_path, cond_cfg.max_depth, cond_cfg.all);
   } else {
     gape_dbg("Running program every %d seconds.", cfg->interval);
     cond = gape_cond_time_sec;

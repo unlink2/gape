@@ -3,10 +3,6 @@
 
 #include "libgape/watch.h"
 
-enum gape_watch_stat {
-  GAPE_WS_EXEC,
-};
-
 struct gape_config {
   const char *prg_path;
   char **prg_args;
@@ -15,15 +11,14 @@ struct gape_config {
   // here to have it freed in config_free
   char *_free_me_sh_c;
 
-  gape_watch_cond cond;
-  gape_watch_act act;
-  gape_watch_out out;
-
   int interval;
 
-  bool dry;
+  const char *observe_path;
+  int16_t max_depth;
+  bool recursive;
+  bool all;
 
-  enum gape_watch_stat strategy;
+  bool dry;
 };
 
 struct gape_config gape_config_init(void);

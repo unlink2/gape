@@ -2,6 +2,7 @@
 #include "libgape/buffer.h"
 #include "libgape/config.h"
 #include "libgape/log.h"
+#include <argtable2.h>
 #include <stdint.h>
 #include <string.h>
 
@@ -21,6 +22,11 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   struct arg_int *interval = NULL;
 
+  struct arg_file *observe_path = NULL;
+  struct arg_int *max_depth = NULL;
+  struct arg_lit *all = NULL;
+  struct arg_lit *recursive = NULL;
+
   // arg end stores errors
   struct arg_end *end = NULL;
 
@@ -37,6 +43,13 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
       dry = arg_lit0(NULL, "dry", "Do a test run"),
       interval = arg_int0("n", "interval", "seconds",
                           "Specify the update interval in seconds."),
+
+      observe_path = arg_file0("o", "observe", "PATH",
+                               "Observe a file or directory for changes"),
+      max_depth = arg_int0("d", "depth", "DEPTH", "Max recursion depth"),
+      recursive = arg_lit0("r", "recursive", "Observe path recursively"),
+      all = arg_lit0("a", "all", "Observe dotfiles"),
+
       end = arg_end(20),
   };
 
@@ -87,6 +100,17 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
     cfg.interval = *interval->ival;
   } else {
     cfg.interval = 2;
+  }
+
+  cfg.recursive = recursive->count > 0;
+  cfg.all = all->count > 0;
+
+  if (max_depth->count > 0) {
+    cfg.max_depth = (int16_t)max_depth->ival[max_depth->count - 1];
+  }
+
+  if (observe_path->count > 0) {
+    cfg.observe_path = observe_path->filename[observe_path->count - 1];
   }
 
   // start set exec command

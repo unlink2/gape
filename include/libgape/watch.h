@@ -47,7 +47,6 @@ struct gape_cond_cfg {
       const char *observe_path;
       // set max depth to -1 to ignore
       int16_t max_depth;
-      bool recursive;
       bool all; // include or ignore dotfiles
       // TODO implement ignored patterns
     };
@@ -57,6 +56,8 @@ struct gape_cond_cfg {
 
 struct gape_cond_cfg gape_cond_cfg_init(void);
 struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds);
+struct gape_cond_cfg gape_cond_fstat_init(const char *observe_path,
+                                          int16_t max_depth, bool all);
 
 // a test condition that always returns true
 bool gape_cond_true(struct gape_watch *self);

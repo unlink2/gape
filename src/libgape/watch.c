@@ -26,6 +26,15 @@ struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
   return self;
 }
 
+struct gape_cond_cfg gape_cond_fstat_init(const char *observe_path,
+                                          int16_t max_depth, bool all) {
+  struct gape_cond_cfg self = gape_cond_cfg_init();
+  self.max_depth = max_depth;
+  self.all = all;
+  self.observe_path = observe_path;
+  return self;
+}
+
 struct gape_cond_cfg gape_cond_cfg_init(void) {
   struct gape_cond_cfg self;
   memset(&self, 0, sizeof(self));
@@ -253,11 +262,30 @@ gape_watch_init(gape_watch_cond cond, struct gape_cond_cfg cond_cfg,
 // TODO: differentiate between differnet types of condition
 struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
 
-  gape_dbg("Running program every %d seconds.", cfg->interval);
-  struct gape_watch self = gape_watch_init(
-      gape_cond_time_sec, gape_cond_time_sec_init(cfg->interval), gape_act_exec,
-      gape_act_cfg_exec(cfg->prg_path, cfg->prg_args), gape_out_print,
-      gape_out_cfg_init());
+  gape_watch_cond cond = gape_cond_false;
+  struct gape_cond_cfg cond_cfg = gape_cond_cfg_init();
+
+  if (cfg->observe_path) {
+    gape_dbg("Observing %s\n", cfg->observe_path);
+    cond = gape_cond_fstat_poll;
+
+    int16_t max_depth = cfg->max_depth;
+
+    if (cfg->recursive) {
+      cfg->max_depth = GAPE_STAT_DEPTH_INF;
+    }
+
+    cond_cfg = gape_cond_fstat_init(cfg->observe_path, max_depth, cfg->all);
+  } else {
+    gape_dbg("Running program every %d seconds.", cfg->interval);
+    cond = gape_cond_time_sec;
+    cond_cfg = gape_cond_time_sec_init(cfg->interval);
+  }
+
+  struct gape_watch self =
+      gape_watch_init(cond, cond_cfg, gape_act_exec,
+                      gape_act_cfg_exec(cfg->prg_path, cfg->prg_args),
+                      gape_out_print, gape_out_cfg_init());
 
   self.act_cfg.dry = cfg->dry;
 

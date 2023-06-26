@@ -76,8 +76,7 @@ int16_t gape_fstat_calc_depth(const char *path) {
 }
 
 // calculate fstat sum for condition checking
-int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
-                       const int16_t depth) {
+int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
   int16_t start_depth = gape_fstat_calc_depth(path);
   int sum = 0;
 
@@ -85,8 +84,8 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
     return 0;
   }
 
-  const char **paths = {path, NULL};
-  FTS *handle = fts_open(paths, FTS_NOCHDIR, NULL); // NOLINT
+  const char *const paths[] = {path, NULL};
+  FTS *handle = fts_open((char *const *)paths, FTS_NOCHDIR, NULL);
   if (!handle) {
     gape_errno();
     return 0;
@@ -125,7 +124,7 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
 }
 
 bool gape_cond_fstat_poll(struct gape_watch *self) {
-  int64_t fstat_sum = gape_fstat_sum(self, self->cond_cfg.observe_path, 0);
+  int64_t fstat_sum = gape_fstat_sum(self, self->cond_cfg.observe_path);
 
   int64_t fstat_sum_last = self->cond_cfg.fstat_sum_last;
 

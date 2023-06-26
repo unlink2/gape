@@ -16,6 +16,7 @@
 #include "libgape/config.h"
 #include <libgen.h>
 #include <dirent.h>
+#include <limits.h>
 
 struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
   struct gape_cond_cfg self;
@@ -60,9 +61,20 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
          strcmp("..", base) != 0;
 }
 
+// result buffer tha can be used in nftw(3) call
+// Important: always set this buffer  before making the initial call
+// to gape_fstat_sum
+struct gape_fstat_buffer {
+  int sum;
+  int depth;
+};
+// TODO: maybe evauluate the use of fts(3) here instead
+_Thread_local struct gape_fstat_buffer gape_fstat_buff;
 // calculate fstat sum for condition checking
 int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
                        const int16_t depth) {
+  // reset fstat sum
+  memset(&gape_fstat_buff, 0, sizeof(gape_fstat_buff));
 
   if (!gape_should_fstat(self, (char *)path)) {
     return 0;
@@ -79,7 +91,7 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
   if (s.st_mode & S_IFDIR && (self->cond_cfg.max_depth == GAPE_STAT_DEPTH_INF ||
                               depth < self->cond_cfg.max_depth)) {
     // call again for every path in directory
-
+    gape_dbg("Stating '%s'\n", path);
     DIR *dir = NULL;
     struct dirent *entry = NULL;
     dir = opendir(path);
@@ -91,16 +103,18 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
 
     while ((entry = readdir(dir)) != NULL) { // NOLINT
       sum += gape_fstat_sum(self, entry->d_name, (int16_t)(depth + 1));
+      if (gape_err()) {
+        return sum;
+      }
     }
 
     closedir(dir);
-  } else {
-    // calc stat
-    // this is a bad implementation, but
-    // it might just work for most cases
-    for (size_t i = 0; i < sizeof(s); i++) {
-      sum += ((uint8_t *)(&s))[i];
-    }
+  }
+  // calc stat
+  // this is a bad implementation, but
+  // it might just work for most cases
+  for (size_t i = 0; i < sizeof(s); i++) {
+    sum += ((uint8_t *)(&s))[i];
   }
 
   return sum;

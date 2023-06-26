@@ -86,7 +86,7 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
   }
 
   const char **paths = {path, NULL};
-  FTS *handle = fts_open(paths, 0, NULL); // NOLINT
+  FTS *handle = fts_open(paths, FTS_NOCHDIR, NULL); // NOLINT
   if (!handle) {
     gape_errno();
     return 0;

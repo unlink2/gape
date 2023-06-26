@@ -67,7 +67,7 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
 // to gape_fstat_sum
 struct gape_fstat_buffer {
   int sum;
-  int depth;
+  int16_t start_depth;
   struct gape_watch *self;
 };
 // TODO: maybe evauluate the use of fts(3) here instead
@@ -75,6 +75,18 @@ _Thread_local struct gape_fstat_buffer gape_fstat_buff;
 
 #define GAPE_CALC_STAT_STOP 1
 #define GAPE_CALC_STAT_CONT 0
+
+// calculate depth of a path
+int16_t gape_fstat_calc_depth(const char *path) {
+  int16_t depth = 0;
+  while (*path) {
+    if (*path == '/') {
+      depth++;
+    }
+    path++;
+  }
+  return depth;
+}
 
 int gape_calc_stat_sum(const char *path, const struct stat *sb, int typeflag) {
   struct gape_watch *self = gape_fstat_buff.self;
@@ -84,8 +96,12 @@ int gape_calc_stat_sum(const char *path, const struct stat *sb, int typeflag) {
     return GAPE_CALC_STAT_CONT;
   }
 
+  gape_dbg("Stating '%s'\n", path);
+
+  int16_t depth = gape_fstat_calc_depth(path);
+
   if (self->cond_cfg.max_depth != GAPE_STAT_DEPTH_INF &&
-      gape_fstat_buff.depth < self->cond_cfg.max_depth) {
+      depth - gape_fstat_buff.start_depth < self->cond_cfg.max_depth) {
     return GAPE_CALC_STAT_STOP;
   }
 
@@ -104,6 +120,7 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
   // reset fstat callback values
   memset(&gape_fstat_buff, 0, sizeof(gape_fstat_buff));
   gape_fstat_buff.self = self;
+  gape_fstat_buff.start_depth = gape_fstat_calc_depth(path);
 
   if (!gape_should_fstat(self, (char *)path)) {
     return 0;

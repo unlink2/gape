@@ -17,6 +17,7 @@
 #include <libgen.h>
 #include <dirent.h>
 #include <limits.h>
+#include <ftw.h>
 
 struct gape_cond_cfg gape_cond_time_sec_init(time_t seconds) {
   struct gape_cond_cfg self;
@@ -67,57 +68,53 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
 struct gape_fstat_buffer {
   int sum;
   int depth;
+  struct gape_watch *self;
 };
 // TODO: maybe evauluate the use of fts(3) here instead
 _Thread_local struct gape_fstat_buffer gape_fstat_buff;
+
+#define GAPE_CALC_STAT_STOP 1
+#define GAPE_CALC_STAT_CONT 0
+
+int gape_calc_stat_sum(const char *path, const struct stat *sb, int typeflag) {
+  struct gape_watch *self = gape_fstat_buff.self;
+
+  // if file is excluded, just continue
+  if (!gape_should_fstat(self, (char *)path)) {
+    return GAPE_CALC_STAT_CONT;
+  }
+
+  if (self->cond_cfg.max_depth != GAPE_STAT_DEPTH_INF &&
+      gape_fstat_buff.depth < self->cond_cfg.max_depth) {
+    return GAPE_CALC_STAT_STOP;
+  }
+
+  // calc stat
+  // this is a bad implementation, but
+  // it might just work for most cases
+  for (size_t i = 0; i < sizeof(struct stat); i++) {
+    gape_fstat_buff.sum += ((uint8_t *)(&sb))[i];
+  }
+  return GAPE_CALC_STAT_CONT;
+}
+
 // calculate fstat sum for condition checking
 int64_t gape_fstat_sum(struct gape_watch *self, const char *path,
                        const int16_t depth) {
-  // reset fstat sum
+  // reset fstat callback values
   memset(&gape_fstat_buff, 0, sizeof(gape_fstat_buff));
+  gape_fstat_buff.self = self;
 
   if (!gape_should_fstat(self, (char *)path)) {
     return 0;
   }
 
-  struct stat s;
-
-  if (stat(path, &s) == -1) {
+  if (ftw(path, gape_calc_stat_sum, 100) == -1) { // NOLINT
     gape_errno();
     return 0;
   }
 
-  int64_t sum = 0;
-  if (s.st_mode & S_IFDIR && (self->cond_cfg.max_depth == GAPE_STAT_DEPTH_INF ||
-                              depth < self->cond_cfg.max_depth)) {
-    // call again for every path in directory
-    gape_dbg("Stating '%s'\n", path);
-    DIR *dir = NULL;
-    struct dirent *entry = NULL;
-    dir = opendir(path);
-    if (dir == NULL) {
-      gape_errno();
-      gape_error("Unable to open directory '%s'\n", path);
-      return 0;
-    }
-
-    while ((entry = readdir(dir)) != NULL) { // NOLINT
-      sum += gape_fstat_sum(self, entry->d_name, (int16_t)(depth + 1));
-      if (gape_err()) {
-        return sum;
-      }
-    }
-
-    closedir(dir);
-  }
-  // calc stat
-  // this is a bad implementation, but
-  // it might just work for most cases
-  for (size_t i = 0; i < sizeof(s); i++) {
-    sum += ((uint8_t *)(&s))[i];
-  }
-
-  return sum;
+  return gape_fstat_buff.sum;
 }
 
 bool gape_cond_fstat_poll(struct gape_watch *self) {

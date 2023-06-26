@@ -111,9 +111,12 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
     // calc stat
     // this is a bad implementation, but
     // it might just work for most cases
-    for (size_t i = 0; i < sizeof(struct stat); i++) {
-      sum += ((uint8_t *)(&sb))[i];
-    }
+    sum += (int)sb->st_size;
+    sum += (int)sb->st_atim.tv_nsec;
+    sum += (int)sb->st_ctim.tv_nsec;
+    sum += (int)sb->st_mtim.tv_nsec;
+    sum += (int)sb->st_mode;
+    sum += (int)sb->st_gid;
   }
 
   if (fts_close(handle)) {
@@ -125,10 +128,10 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
 
 bool gape_cond_fstat_poll(struct gape_watch *self) {
   int64_t fstat_sum = gape_fstat_sum(self, self->cond_cfg.observe_path);
-
   int64_t fstat_sum_last = self->cond_cfg.fstat_sum_last;
-
   self->cond_cfg.fstat_sum_last = fstat_sum;
+
+  gape_dbg("last stat: %ld. sum: %ld\n", fstat_sum_last, fstat_sum);
 
   return fstat_sum_last != fstat_sum;
 }

@@ -22,8 +22,6 @@ make # to compile all targets
 
 ## Usage
 
-1) Rename `gape` to the project's name in all files and folders 
-
 ## License
 
 This program is distributed under the terms of the MIT License.

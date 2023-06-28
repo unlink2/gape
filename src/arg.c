@@ -21,6 +21,7 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_lit *dry = NULL;
 
   struct arg_int *interval = NULL;
+  struct arg_int *usleep = NULL;
 
   struct arg_file *observe_path = NULL;
   struct arg_int *max_depth = NULL;
@@ -49,6 +50,10 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
       max_depth = arg_int0("d", "depth", "DEPTH", "Max recursion depth"),
       recursive = arg_lit0("r", "recursive", "Observe path recursively"),
       all = arg_lit0("a", "all", "Observe dotfiles"),
+
+      usleep = arg_int0(
+          "u", "usleep", "microseconds",
+          "Amount of time to sleep between re-evaluating the run condition"),
 
       end = arg_end(20),
   };
@@ -111,6 +116,10 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   if (observe_path->count > 0) {
     cfg.observe_path = observe_path->filename[observe_path->count - 1];
+  }
+
+  if (usleep->count > 0) {
+    cfg.usleep = usleep->ival[usleep->count - 1];
   }
 
   // start set exec command

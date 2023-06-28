@@ -125,6 +125,7 @@ int gape_out_print_diff(struct gape_watch *self);
 
 // Contains shared config for all action types
 struct gape_watch {
+  int64_t usleep;
   // number of runs before force exiting
   // if set to -1 run forever
   int32_t n_runs;

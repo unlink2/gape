@@ -8,6 +8,9 @@ struct gape_config gape_config_init(void) {
   struct gape_config c;
   memset(&c, 0, sizeof(c));
 
+  c.usleep = GAPE_SPIN_MS;
+  c.n_runs = GAPE_NRUN_FOREVER;
+
   return c;
 }
 

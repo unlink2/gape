@@ -18,6 +18,9 @@ struct gape_config {
   bool recursive;
   bool all;
 
+  int64_t usleep;
+  int32_t n_runs;
+
   bool dry;
 };
 

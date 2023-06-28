@@ -63,21 +63,10 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
          strcmp("..", base) != 0;
 }
 
-// calculate depth of a path
-int16_t gape_fstat_calc_depth(const char *path) {
-  int16_t depth = 0;
-  while (*path) {
-    if (*path == '/') {
-      depth++;
-    }
-    path++;
-  }
-  return depth;
-}
-
 // calculate fstat sum for condition checking
+// TODO: This does call malloc(3) but it should not be a huge issue
+// all in all
 int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
-  int16_t start_depth = gape_fstat_calc_depth(path);
   int sum = 0;
 
   if (!gape_should_fstat(self, (char *)path)) {
@@ -93,19 +82,16 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
 
   FTSENT *node = NULL;
   while ((node = fts_read(handle))) {
-    // if file is excluded, just continue
-    if (!gape_should_fstat(self, (char *)path)) {
+    int16_t depth = node->fts_level;
+
+    if ((self->cond_cfg.max_depth != GAPE_STAT_DEPTH_INF &&
+         depth > self->cond_cfg.max_depth) ||
+        !gape_should_fstat(self, node->fts_path)) {
+      fts_set(handle, node, FTS_SKIP);
       continue;
     }
 
-    int16_t depth = gape_fstat_calc_depth(path);
-
-    if (self->cond_cfg.max_depth != GAPE_STAT_DEPTH_INF &&
-        depth - start_depth < self->cond_cfg.max_depth) {
-      continue;
-    }
-
-    gape_dbg("Stating '%s'\n", node->fts_path);
+    gape_dbg("Stating '%s' at depth %d\n", node->fts_path, depth);
 
     struct stat *sb = node->fts_statp;
     // calc stat
@@ -291,7 +277,9 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
     int16_t max_depth = cfg->max_depth;
 
     if (cfg->recursive) {
-      cfg->max_depth = GAPE_STAT_DEPTH_INF;
+      max_depth = GAPE_STAT_DEPTH_INF;
+    } else if (max_depth == 0) {
+      max_depth = 1;
     }
 
     cond_cfg = gape_cond_fstat_init(cfg->observe_path, max_depth, cfg->all);
@@ -310,6 +298,10 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
                       gape_out_print, gape_out_cfg_init());
 
   self.act_cfg.dry = cfg->dry;
+  self.usleep = cfg->usleep;
+  self.n_runs = cfg->n_runs;
+
+  gape_dbg("usleep: %ld. n_runs: %d\n", self.usleep, self.n_runs);
 
   return self;
 }
@@ -332,7 +324,7 @@ int gape_watch(struct gape_watch *self) {
 
   while (self->n_runs == GAPE_NRUN_FOREVER || self->n_runs-- > 0) {
     while (!self->cond(self)) {
-      usleep(GAPE_SPIN_MS);
+      usleep(self->usleep);
     }
 
     status = self->act(self);

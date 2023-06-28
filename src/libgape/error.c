@@ -11,6 +11,8 @@ const char *gape_err_to_str(enum gape_error self) {
   switch (self) {
   case GAPE_OK:
     return "OK";
+  default:
+    return "Unknown";
   }
 }
 

@@ -27,7 +27,7 @@ project (NAME)
    kind "ConsoleApp"
    language "C"
    targetdir "bin/%{cfg.buildcfg}"
-   links { "argtable2", "yaml" }
+   links { "argtable2" }
    -- links { "lib"..NAME }
    buildoptions { "-Wall", "-pedantic" }
 

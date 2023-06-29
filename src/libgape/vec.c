@@ -15,14 +15,15 @@ struct gape_vec gape_vec_init(size_t stride) {
   return self;
 }
 
-#define gape_vec_data_at(index) ((uint8_t *)(self->data) + (index))
+#define gape_vec_data_at(self, index)                                          \
+  ((uint8_t *)((self)->data) + (self)->stride * (index))
 
 void *gape_vec_get(struct gape_vec *self, size_t index) {
   if (index > self->len) {
     return NULL;
   }
 
-  return NULL;
+  return gape_vec_data_at(self, index);
 }
 
 void gape_vec_resize(struct gape_vec *self) {
@@ -44,7 +45,7 @@ void gape_vec_add(struct gape_vec *self, void *data) {
     }
   }
 
-  memcpy(gape_vec_data_at(self->stride * self->len), data, self->stride);
+  memcpy(gape_vec_data_at(self, self->len), data, self->stride);
   self->len++;
 }
 

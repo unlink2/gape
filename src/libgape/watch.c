@@ -58,7 +58,6 @@ bool gape_cond_time_sec(struct gape_watch *self) {
   return false;
 }
 
-// TODO: Implement realpath that does not use malloc
 bool gape_should_fstat(struct gape_watch *self, char *path) {
   char *base = basename(path);
   bool basic_check = (self->cond_cfg.all || base[0] != '.') &&

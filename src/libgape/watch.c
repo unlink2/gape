@@ -3,6 +3,7 @@
 #include "libgape/error.h"
 #include "libgape/log.h"
 #include "libgape/macros.h"
+#include <linux/limits.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,10 +58,49 @@ bool gape_cond_time_sec(struct gape_watch *self) {
   return false;
 }
 
+// TODO: Implement realpath that does not use malloc
 bool gape_should_fstat(struct gape_watch *self, char *path) {
   char *base = basename(path);
-  return (self->cond_cfg.all || base[0] != '.') && strcmp(".", base) != 0 &&
-         strcmp("..", base) != 0;
+  bool basic_check = (self->cond_cfg.all || base[0] != '.') &&
+                     strcmp(".", base) != 0 && strcmp("..", base) != 0;
+
+  char real_path_src[PATH_MAX];
+  realpath(path, real_path_src);
+
+  char real_path_tmp[PATH_MAX];
+
+  bool excluded = false;
+  if (basic_check) {
+    for (size_t i = 0; i < self->cond_cfg.ignore_paths->len; i++) {
+      char *const p = gape_vec_get(self->cond_cfg.ignore_paths, i);
+      if (!realpath(p, real_path_tmp)) {
+        gape_errno();
+        return false;
+      }
+
+      if (strncmp(real_path_src, real_path_tmp, PATH_MAX) == 0) {
+        excluded = true;
+        break;
+      }
+    }
+  }
+
+  if (excluded) {
+    for (size_t i = 0; i < self->cond_cfg.include_paths->len; i++) {
+      char *const p = gape_vec_get(self->cond_cfg.include_paths, i);
+      if (!realpath(p, real_path_tmp)) {
+        gape_errno();
+        return false;
+      }
+
+      if (strncmp(real_path_src, real_path_tmp, PATH_MAX) == 0) {
+        excluded = false;
+        break;
+      }
+    }
+  }
+
+  return basic_check && !excluded;
 }
 
 // calculate fstat sum for condition checking
@@ -283,6 +323,9 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
     }
 
     cond_cfg = gape_cond_fstat_init(cfg->observe_path, max_depth, cfg->all);
+
+    cond_cfg.ignore_paths = &cfg->ignore_paths;
+    cond_cfg.include_paths = &cfg->include_paths;
 
     gape_dbg("Observing %s with a depth of %d (dotfiles: %d)\n",
              cond_cfg.observe_path, cond_cfg.max_depth, cond_cfg.all);

@@ -2,8 +2,12 @@
 #define CONFIG_H_
 
 #include "libgape/watch.h"
+#include "libgape/vec.h"
 
 struct gape_config {
+  struct gape_vec ignore_paths;
+  struct gape_vec include_paths;
+
   const char *prg_path;
   char **prg_args;
 

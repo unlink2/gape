@@ -6,6 +6,7 @@
 #include <time.h>
 #include "libgape/buffer.h"
 #include "libgape/macros.h"
+#include "libgape/vec.h"
 
 struct gape_config;
 
@@ -43,6 +44,9 @@ struct gape_cond_cfg {
       // if it changes we know the file system has changed
       // and we can re-run
       int64_t fstat_sum_last;
+
+      struct gape_vec *ignore_paths;
+      struct gape_vec *include_paths;
 
       const char *observe_path;
       // set max depth to -1 to ignore

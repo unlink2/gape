@@ -15,6 +15,7 @@
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include "libgape/config.h"
+#include "libgape/vec.h"
 #include <libgen.h>
 #include <dirent.h>
 #include <limits.h>
@@ -161,6 +162,12 @@ int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
 
 bool gape_cond_fstat_poll(struct gape_watch *self) {
   int64_t fstat_sum = gape_fstat_sum(self, self->cond_cfg.observe_path);
+
+  for (size_t i = 0; i < self->cond_cfg.include_paths->len; i++) {
+    char **const p = gape_vec_get(self->cond_cfg.include_paths, i);
+    fstat_sum += gape_fstat_sum(self, *p);
+  }
+
   int64_t fstat_sum_last = self->cond_cfg.fstat_sum_last;
   self->cond_cfg.fstat_sum_last = fstat_sum;
 

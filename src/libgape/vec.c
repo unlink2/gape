@@ -1,6 +1,7 @@
 #include "libgape/vec.h"
 #include "libgape/error.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -11,6 +12,7 @@ struct gape_vec gape_vec_init(size_t stride) {
   self.data = malloc(GAPE_VEC_INITIAL_LEN * stride);
   self.stride = stride;
   self.len_max = GAPE_VEC_INITIAL_LEN;
+  memset(self.data, 0, self.len_max);
 
   return self;
 }
@@ -44,7 +46,6 @@ void gape_vec_add(struct gape_vec *self, void *data) {
       return;
     }
   }
-
   memcpy(gape_vec_data_at(self, self->len), data, self->stride);
   self->len++;
 }

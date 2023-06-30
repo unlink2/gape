@@ -64,20 +64,26 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
                      strcmp(".", base) != 0 && strcmp("..", base) != 0;
 
   char real_path_src[PATH_MAX];
-  realpath(path, real_path_src);
+  if (!realpath(path, real_path_src)) {
+    gape_errno();
+    return false;
+  }
 
   char real_path_tmp[PATH_MAX];
 
   bool excluded = false;
   if (basic_check) {
     for (size_t i = 0; i < self->cond_cfg.ignore_paths->len; i++) {
-      char *const p = gape_vec_get(self->cond_cfg.ignore_paths, i);
-      if (!realpath(p, real_path_tmp)) {
+      char **const p = gape_vec_get(self->cond_cfg.ignore_paths, i);
+
+      if (!realpath(*p, real_path_tmp)) {
         gape_errno();
         return false;
       }
 
       if (strncmp(real_path_src, real_path_tmp, PATH_MAX) == 0) {
+        gape_dbg("Excluding '%s' because it matches '%s'\n", real_path_src,
+                 real_path_tmp);
         excluded = true;
         break;
       }
@@ -86,13 +92,15 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
 
   if (excluded) {
     for (size_t i = 0; i < self->cond_cfg.include_paths->len; i++) {
-      char *const p = gape_vec_get(self->cond_cfg.include_paths, i);
-      if (!realpath(p, real_path_tmp)) {
+      char **const p = gape_vec_get(self->cond_cfg.include_paths, i);
+      if (!realpath(*p, real_path_tmp)) {
         gape_errno();
         return false;
       }
 
       if (strncmp(real_path_src, real_path_tmp, PATH_MAX) == 0) {
+        gape_dbg("Including '%s' because it matches '%s'\n", real_path_src,
+                 real_path_tmp);
         excluded = false;
         break;
       }
@@ -108,7 +116,7 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
 int64_t gape_fstat_sum(struct gape_watch *self, const char *path) {
   int sum = 0;
 
-  if (!gape_should_fstat(self, (char *)path)) {
+  if (!gape_should_fstat(self, (char *)path) || gape_err()) {
     return 0;
   }
 
@@ -366,6 +374,9 @@ int gape_watch(struct gape_watch *self) {
 
   while (self->n_runs == GAPE_NRUN_FOREVER || self->n_runs-- > 0) {
     while (!self->cond(self)) {
+      if (gape_err()) {
+        return -1;
+      }
       usleep(self->usleep);
     }
 

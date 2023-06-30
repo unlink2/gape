@@ -23,6 +23,9 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_int *interval = NULL;
   struct arg_int *usleep = NULL;
 
+  struct arg_file *ignore_paths = NULL;
+  struct arg_file *include_paths = NULL;
+
   struct arg_file *observe_path = NULL;
   struct arg_int *max_depth = NULL;
   struct arg_lit *all = NULL;
@@ -50,6 +53,11 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
       max_depth = arg_int0("d", "depth", "DEPTH", "Max recursion depth"),
       recursive = arg_lit0("r", "recursive", "Observe path recursively"),
       all = arg_lit0("a", "all", "Observe dotfiles"),
+      ignore_paths = arg_filen(NULL, "ignore", "FILE/DIR", 0, 0xFFFF,
+                               "Ignore certain paths when watching a folder"),
+      include_paths =
+          arg_filen(NULL, "include", "FILE/DIR", 0, 0xFFFF,
+                    "Explicitly add certain paths when watching a folder"),
 
       usleep = arg_int0(
           "u", "usleep", "microseconds",
@@ -120,6 +128,14 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   if (usleep->count > 0) {
     cfg.usleep = usleep->ival[usleep->count - 1];
+  }
+
+  for (size_t i = 0; i < ignore_paths->count; i++) {
+    gape_vec_add(&cfg.ignore_paths, &ignore_paths->filename[i]);
+  }
+
+  for (size_t i = 0; i < include_paths->count; i++) {
+    gape_vec_add(&cfg.include_paths, &include_paths->filename[i]);
   }
 
   // start set exec command

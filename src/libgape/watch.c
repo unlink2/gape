@@ -93,24 +93,6 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
     }
   }
 
-  if (excluded) {
-    for (size_t i = 0; i < self->cond_cfg.include_paths->len; i++) {
-      char **const p = gape_vec_get(self->cond_cfg.include_paths, i);
-      if (!realpath(*p, real_path_tmp)) {
-        gape_error("Unable to obtain real path for '%s'\n", *p);
-        gape_errno();
-        return false;
-      }
-
-      if (strncmp(real_path_src, real_path_tmp, PATH_MAX) == 0) {
-        gape_dbg("Including '%s' because it matches '%s'\n", real_path_src,
-                 real_path_tmp);
-        excluded = false;
-        break;
-      }
-    }
-  }
-
   return basic_check && !excluded;
 }
 

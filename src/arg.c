@@ -89,8 +89,8 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   // output params
   char progname[] = "gape";
-  char short_desc[] = "Gape - Execute programs on file system "
-                      "updates\nDeveloped by Lukas Krickl <lukas@krickl.dev>";
+  char short_desc[] =
+      "Gape - Re-run programs\nDeveloped by Lukas Krickl <lukas@krickl.dev>";
 
   // version info
   int version_major = 0;

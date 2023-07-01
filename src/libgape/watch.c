@@ -65,16 +65,16 @@ bool gape_should_fstat(struct gape_watch *self, char *path) {
                      strcmp(".", base) != 0 && strcmp("..", base) != 0;
 
   char real_path_src[PATH_MAX];
-  if (!realpath(path, real_path_src)) {
-    gape_error("Unable to obtain real path for '%s'\n", path);
-    gape_errno();
-    return false;
-  }
-
   char real_path_tmp[PATH_MAX];
 
   bool excluded = false;
   if (basic_check) {
+    if (!realpath(path, real_path_src)) {
+      gape_error("Unable to obtain real path for '%s'\n", path);
+      gape_errno();
+      return false;
+    }
+
     for (size_t i = 0; i < self->cond_cfg.ignore_paths->len; i++) {
       char **const p = gape_vec_get(self->cond_cfg.ignore_paths, i);
 
@@ -289,6 +289,51 @@ int gape_out_print(struct gape_watch *self) {
   return 0;
 }
 
+int gape_out_diff_write_to_tmp(struct gape_watch *self) {
+
+  // write stdout to path
+  FILE *tmp_current = fopen(self->out_cfg.current_tmp_path, "we");
+  if (!tmp_current) {
+    gape_error("Opening '%s' failed\n", self->out_cfg.current_tmp_path);
+    gape_errno();
+    return -1;
+  }
+
+  size_t len = gape_buffer_len(&self->out_cur);
+  fwrite(gape_buffer_start(&self->out_cur), 1, len, tmp_current);
+
+  fclose(tmp_current);
+
+  return 0;
+}
+
+// TODO: maybe use fork/exec instead of system here
+int gape_out_diff(struct gape_watch *self) {
+  // if this is the first run, just print
+  if (access(self->out_cfg.current_tmp_path, F_OK) != 0) {
+    if (gape_out_diff_write_to_tmp(self) == -1) {
+      return -1;
+    }
+    return gape_out_print(self);
+  } else {
+    // move output files around
+    if (rename(self->out_cfg.current_tmp_path, self->out_cfg.prev_tmp_path) ==
+        -1) {
+      gape_error("Moving tmp file from '%s' to '%s' failed!\n",
+                 self->out_cfg.current_tmp_path, self->out_cfg.prev_tmp_path);
+      gape_errno();
+      return -1;
+    }
+  }
+
+  if (gape_out_diff_write_to_tmp(self) == -1) {
+    return -1;
+  }
+
+  // the diff call should simply compare the temp files
+  return system(self->out_cfg.diff_prg); // NOLINT
+}
+
 struct gape_watch
 gape_watch_init(gape_watch_cond cond, struct gape_cond_cfg cond_cfg,
                 gape_watch_act act, struct gape_act_cfg act_cfg,
@@ -315,6 +360,7 @@ gape_watch_init(gape_watch_cond cond, struct gape_cond_cfg cond_cfg,
 // TODO: differentiate between differnet types of condition
 struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
 
+  // cond setup
   gape_watch_cond cond = gape_cond_false;
   struct gape_cond_cfg cond_cfg = gape_cond_cfg_init();
 
@@ -342,10 +388,24 @@ struct gape_watch gape_watch_from_cfg(struct gape_config *cfg) {
     cond_cfg = gape_cond_time_sec_init(cfg->interval);
   }
 
-  struct gape_watch self =
-      gape_watch_init(cond, cond_cfg, gape_act_exec,
-                      gape_act_cfg_exec(cfg->prg_path, cfg->prg_args),
-                      gape_out_print, gape_out_cfg_init());
+  // out setup
+  gape_watch_out out = gape_out_print;
+  struct gape_out_cfg out_cfg = gape_out_cfg_init();
+
+  if (cfg->diff) {
+    out_cfg.diff_prg = cfg->diff_prg;
+    out_cfg.current_tmp_path = cfg->tmp_cur_path;
+    out_cfg.prev_tmp_path = cfg->tmp_prev_path;
+    out = gape_out_diff;
+
+    gape_dbg(
+        "Output mode is diff. Command: %s. Tmp current: %s. Tmp prev: %s\n",
+        out_cfg.diff_prg, out_cfg.current_tmp_path, out_cfg.prev_tmp_path);
+  }
+
+  struct gape_watch self = gape_watch_init(
+      cond, cond_cfg, gape_act_exec,
+      gape_act_cfg_exec(cfg->prg_path, cfg->prg_args), out, out_cfg);
 
   self.act_cfg.dry = cfg->dry;
   self.usleep = cfg->usleep;

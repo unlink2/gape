@@ -10,6 +10,10 @@
 #define GAPE_SHELL_OPT "-c"
 #define GAPE_ENV_CMD "/usr/bin/env"
 
+#define GAPE_TMP_OUT_CUR "/tmp/gape_stdout.cur"
+#define GAPE_TMP_OUT_PREV "/tmp/gape_stdout.prev"
+#define GAPE_DIFF_CMD "diff -y --color " GAPE_TMP_OUT_CUR " " GAPE_TMP_OUT_PREV
+
 struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_lit *verb = NULL;
   struct arg_lit *help = NULL;
@@ -30,6 +34,11 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
   struct arg_int *max_depth = NULL;
   struct arg_lit *all = NULL;
   struct arg_lit *recursive = NULL;
+
+  struct arg_lit *diff = NULL;
+  struct arg_str *diff_cmd = NULL;
+  struct arg_file *tmp_cur = NULL;
+  struct arg_file *tmp_prev = NULL;
 
   // arg end stores errors
   struct arg_end *end = NULL;
@@ -62,6 +71,18 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
       usleep = arg_int0(
           "u", "usleep", "microseconds",
           "Amount of time to sleep between re-evaluating the run condition"),
+
+      diff = arg_lit0(NULL, "diff",
+                      "Execute diff command on current and previous output"),
+      diff_cmd =
+          arg_str0(NULL, "diff-cmd", "CMD",
+                   "The diff command to run. Default value = " GAPE_DIFF_CMD),
+      tmp_cur = arg_file0(NULL, "tmp-cur", "FILE",
+                          "The path to write the current command's result to "
+                          "for diffing. Default value = " GAPE_TMP_OUT_CUR),
+      tmp_prev = arg_file0(NULL, "tmp-prev", "FILE",
+                           "The path to write the previous command's result to "
+                           "for diffing. Default value = " GAPE_TMP_OUT_PREV),
 
       end = arg_end(20),
   };
@@ -136,6 +157,25 @@ struct gape_config gape_args_to_config(int argc, char **argv) {
 
   for (size_t i = 0; i < include_paths->count; i++) {
     gape_vec_add(&cfg.include_paths, &include_paths->filename[i]);
+  }
+
+  cfg.diff = diff->count > 0;
+  if (diff_cmd->count > 0) {
+    cfg.diff_prg = diff_cmd->sval[diff_cmd->count - 1];
+  } else {
+    cfg.diff_prg = GAPE_DIFF_CMD;
+  }
+
+  if (tmp_cur->count > 0) {
+    cfg.tmp_cur_path = tmp_cur->filename[tmp_cur->count - 1];
+  } else {
+    cfg.tmp_cur_path = GAPE_TMP_OUT_CUR;
+  }
+
+  if (tmp_prev->count > 0) {
+    cfg.tmp_cur_path = tmp_prev->filename[tmp_prev->count - 1];
+  } else {
+    cfg.tmp_prev_path = GAPE_TMP_OUT_PREV;
   }
 
   // start set exec command

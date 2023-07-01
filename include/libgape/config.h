@@ -25,6 +25,11 @@ struct gape_config {
   int64_t usleep;
   int32_t n_runs;
 
+  bool diff;
+  const char *diff_prg;
+  const char *tmp_cur_path;
+  const char *tmp_prev_path;
+
   bool dry;
 };
 

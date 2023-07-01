@@ -107,6 +107,11 @@ int gape_act_exec(struct gape_watch *self);
  */
 struct gape_out_cfg {
   union {
+    struct {
+      const char *diff_prg;
+      const char *current_tmp_path;
+      const char *prev_tmp_path;
+    };
     void *custom;
   };
 };
